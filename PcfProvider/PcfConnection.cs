@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
+using PcfOrganization = PcfProvider.Organizations.PcfOrganization;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 
 namespace PcfProvider
@@ -23,7 +24,9 @@ namespace PcfProvider
 		public string AccessToken { get; private set; }
 
 		public Apps.RootObject AllApps { get; private set; }
+
 		public Organizations.RootObject AllOrganizations { get; private set; }
+
 		public Services.RootObject AllServices { get; private set; }
 
 		public PSCredential Credential { get; }
@@ -36,15 +39,6 @@ namespace PcfProvider
 
 		public string Uri { get; }
 
-		public List<Organizations.Entity> GetAllOrganizations(string container)
-		{
-			var allApps = new List<Organizations.Entity>();
-			var rawAppInfo = GetRawContainerContents(container);
-			AllOrganizations = JsonConvert.DeserializeObject<Organizations.RootObject>(rawAppInfo);
-			AllOrganizations.resources.ForEach(r => allApps.Add(r.entity));
-			return allApps;
-		}
-
 		public List<PcfAppInfo> GetAllApps(string container)
 		{
 			var allApps = new List<PcfAppInfo>();
@@ -54,6 +48,16 @@ namespace PcfProvider
 			GetAllServiceBindings(allApps);
 			return allApps;
 		}
+
+		public List<PcfOrganization> GetAllOrganizations(string container)
+		{
+			var allApps = new List<PcfOrganization>();
+			var rawAppInfo = GetRawContainerContents(container);
+			AllOrganizations = JsonConvert.DeserializeObject<Organizations.RootObject>(rawAppInfo);
+			AllOrganizations.Resources.ForEach(r => allApps.Add(r.Organization));
+			return allApps;
+		}
+
 		public List<PcfServiceInfo> GetAllServices(string container)
 		{
 			var allServices = new List<PcfServiceInfo>();
@@ -76,7 +80,7 @@ namespace PcfProvider
 				var serviceBindingUrl = app.ServiceBindingsUrl;
 				var rawServiceBindingInfo = GetRawContainerContents("service_bindings", serviceBindingUrl);
 				var serviceBindings = JsonConvert.DeserializeObject<ServiceBindings.RootObject>(rawServiceBindingInfo);
-				foreach (var serviceBinding in serviceBindings.resources)
+				foreach (var serviceBinding in serviceBindings.Resources)
 				{
 					var serviceInstanceUrl = serviceBinding.ServiceBinding.service_instance_url;
 					var rawServiceInstanceInfo = GetRawContainerContents("service_instance", serviceInstanceUrl);

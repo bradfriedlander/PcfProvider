@@ -59,7 +59,7 @@
     <Compile Include="Apps\RootObject.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="OAuthResponse.cs" />
-    <Compile Include="Organizations\Entity.cs" />
+    <Compile Include="Organizations\PcfOrganization.cs" />
     <Compile Include="Organizations\Metadata.cs" />
     <Compile Include="Organizations\Resource.cs" />
     <Compile Include="Organizations\RootObject.cs" />

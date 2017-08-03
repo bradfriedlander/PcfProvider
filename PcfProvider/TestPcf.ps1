@@ -21,5 +21,7 @@ gci apps | %{echo $_.ServiceBindings.ServiceInstance}
 #echo "cd ..\services; dir"
 #cd ..\services
 #dir
-echo "gci | ft Name,Active,UniqueId,Description"
+echo "gci .\services | ft Name,Active,UniqueId,Description"
 gci .\services |ft Name,Active,UniqueId,Description
+echo "gci .\organizations | ft Name,Status"
+gci .\organizations | ft Name,Status

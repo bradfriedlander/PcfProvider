@@ -1,18 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.ServiceBindings
 {
+	[JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 	public class RootObject
 	{
-		public object next_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public object NextUrl { get; set; }
 
-		public object prev_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public object PrevUrl { get; set; }
 
-		public List<Resource> resources { get; set; }
+		public List<Resource> Resources { get; set; }
 
-		public int total_pages { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public int TotalPages { get; set; }
 
-		public int total_results { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public int TotalResults { get; set; }
 	}
 }

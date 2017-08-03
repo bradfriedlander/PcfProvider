@@ -1,0 +1,49 @@
+﻿using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+namespace PcfProvider.Organizations
+{
+	[JsonObject("entity", NamingStrategyType = typeof(CamelCaseNamingStrategy))]
+	public class PcfOrganization
+	{
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string AppEventsUrl { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string AuditorsUrl { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public bool BillingEnabled { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string BillingManagersUrl { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string DomainsUrl { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string ManagersUrl { get; set; }
+
+		public string Name { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string privateDomainsUrl { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string QuotaDefinitionGuid { get; set; }
+
+		public string QuotaDefinitionUrl { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string spaceQuotaDefinitionsUrl { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string SpacesUrl { get; set; }
+
+		public string Status { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string UsersUrl { get; set; }
+	}
+}

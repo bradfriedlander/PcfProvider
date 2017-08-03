@@ -1,8 +1,12 @@
-﻿namespace PcfProvider.Organizations
+﻿using Newtonsoft.Json;
+
+namespace PcfProvider.Organizations
 {
 	public class Resource
 	{
-		public Metadata metadata { get; set; }
-		public Entity entity { get; set; }
+		public Metadata Metadata { get; set; }
+
+		[JsonProperty("entity")]
+		public PcfOrganization Organization { get; set; }
 	}
 }

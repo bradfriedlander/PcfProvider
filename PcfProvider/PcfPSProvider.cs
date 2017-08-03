@@ -346,7 +346,8 @@ namespace PcfProvider
 
 		private List<PcfAppInfo> GetApps(string container) => currentDriveInfo.Connection.GetAllApps(container);
 
-		private List<Organizations.Entity> GetOrganizations(string container) => currentDriveInfo.Connection.GetAllOrganizations(container);
+		private List<Organizations.PcfOrganization> GetOrganizations(string container) => currentDriveInfo.Connection.GetAllOrganizations(container);
+
 		private List<PcfServiceInfo> GetServices(string container) => currentDriveInfo.Connection.GetAllServices(container);
 
 		private string NormalizePath(string path) => path?.Replace(@".\", @"\") ?? string.Empty;
