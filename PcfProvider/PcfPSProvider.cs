@@ -84,6 +84,10 @@ namespace PcfProvider
 				foreach (var name in firstLevelNames)
 				{
 					WriteItemObject(FirstLevelObject(name), path, true);
+					if(recurse)
+					{
+						GetChildItems(name, recurse);
+					}
 				}
 				return;
 			}
