@@ -41,7 +41,8 @@ namespace PcfProvider
 			var allApps = new List<PcfAppInfo>();
 			var rawAppInfo = GetRawContainerContents(container);
 			AllApps = JsonConvert.DeserializeObject<Apps.RootObject>(rawAppInfo);
-			AllApps.Resources.ForEach(r => allApps.Add(r.AppInfo));
+			AllApps.Resources.ForEach(r => { r.AppInfo.AppGuid = r.Metadata.Guid; allApps.Add(r.AppInfo); });
+			GetAllServiceBindings(allApps);
 			return allApps;
 		}
 
@@ -58,6 +59,24 @@ namespace PcfProvider
 		{
 			var authenticationResults = GetAuthToken(username, password);
 			SaveAuthorization(authenticationResults);
+		}
+
+		private void GetAllServiceBindings(List<PcfAppInfo> allApps)
+		{
+			foreach (var app in allApps)
+			{
+				var serviceBindingUrl = app.ServiceBindingsUrl;
+				var rawServiceBindingInfo = GetRawContainerContents("service_bindings", serviceBindingUrl);
+				var serviceBindings = JsonConvert.DeserializeObject<ServiceBindings.RootObject>(rawServiceBindingInfo);
+				foreach (var serviceBinding in serviceBindings.resources)
+				{
+					var serviceInstanceUrl = serviceBinding.ServiceBinding.service_instance_url;
+					var rawServiceInstanceInfo = GetRawContainerContents("service_instance", serviceInstanceUrl);
+					var serviceInstance = JsonConvert.DeserializeObject<ServiceInstance.RootObject>(rawServiceInstanceInfo);
+					serviceBinding.ServiceBinding.ServiceInstance = serviceInstance.ServiceInstance;
+					app.ServiceBindings.Add(serviceBinding.ServiceBinding);
+				}
+			}
 		}
 
 		private string GetAuthHeader(string userName)
@@ -92,27 +111,21 @@ namespace PcfProvider
 			}
 		}
 
-		private string GetRawContainerContents(string container)
+		private string GetRawContainerContents(string container, string url = "")
 		{
 			if (DateTime.UtcNow >= ExpirationTime)
 			{
 				RefreshAuthToken();
 			}
 			var httpType = IsLocal ? "http" : "https";
-			var request = (HttpWebRequest)WebRequest.Create($"{httpType}://api.{Uri}/v2/{container}");
+			var command = Helpers.CheckNullOrEmpty(url) ? $"/v2/{container}" : url;
+			var request = (HttpWebRequest)WebRequest.Create($"{httpType}://api.{Uri}{command}");
 			request.Headers.Add("Authorization", $"Bearer {AccessToken}");
 			request.Method = "GET";
 			using (var response = request.GetResponse())
 			using (var reader = new StreamReader(response.GetResponseStream()))
 			{
-				var contents = reader.ReadToEnd();
-				var filename = $"{container}.json";
-				if (File.Exists(filename))
-				{
-					File.Delete(filename);
-				}
-				File.AppendAllText(filename, contents);
-				return contents;
+				return Helpers.SaveJson(container, reader.ReadToEnd());
 			}
 		}
 

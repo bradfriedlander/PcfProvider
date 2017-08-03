@@ -28,7 +28,7 @@ namespace PcfProvider.Services
 		public string Name { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public bool planUpdateable { get; set; }
+		public bool PlanUpdateable { get; set; }
 
 		public object Provider { get; set; }
 

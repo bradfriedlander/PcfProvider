@@ -7,6 +7,14 @@ namespace PcfProvider.Apps
 	[JsonObject("entity", NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 	public class PcfAppInfo
 	{
+		public PcfAppInfo()
+		{
+			ServiceBindings = new List<ServiceBindings.PcfServiceBinding>();
+		}
+
+		[JsonIgnore()]
+		public string AppGuid { get; set; }
+
 		public string Buildpack { get; set; }
 
 		public object Command { get; set; }
@@ -75,6 +83,9 @@ namespace PcfProvider.Apps
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string RoutesUrl { get; set; }
+
+		[JsonIgnore()]
+		public List<ServiceBindings.PcfServiceBinding> ServiceBindings { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string ServiceBindingsUrl { get; set; }

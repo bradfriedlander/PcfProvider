@@ -16,6 +16,8 @@ dir
 #dir
 echo "gci | ft Name,MemoryKb,DiskKb,Instances"
 gci .\apps | ft Name,MemoryKb,DiskKb,Instances
+echo "gci apps | %{echo $_.ServiceBindings.ServiceInstance}"
+gci apps | %{echo $_.ServiceBindings.ServiceInstance}
 #echo "cd ..\services; dir"
 #cd ..\services
 #dir

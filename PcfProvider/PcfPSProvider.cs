@@ -16,8 +16,8 @@ namespace PcfProvider
 	{
 		public PcfPSProvider() : base()
 		{
-			_trace.WriteLine($"Entering {nameof(PcfPSProvider)} constructor");
-			if (null != currentDriveInfo)
+			_trace.WriteLine($"Entering {nameof(PcfPSProvider)} constructor", isBlankBefore: true);
+			if (!Helpers.CheckNullOrEmpty(currentDriveInfo))
 			{
 				_trace.WriteLine($"{currentDriveInfo.Name}: http://{currentDriveInfo.Uri}('{currentDriveInfo.UserName}')");
 			}

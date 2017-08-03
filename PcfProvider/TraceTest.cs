@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System;
 
 namespace PcfProvider
 {
@@ -19,11 +20,12 @@ namespace PcfProvider
 
 		public void SetActivated(bool activated) => Activated = activated;
 
-		public void WriteLine(string message, string area = null, string application = null)
+		public void WriteLine(string message, string area = null, string application = null, bool isBlankBefore=false)
 		{
 			if (Activated)
 			{
-				Trace.WriteLine($"{application ?? Application}: {area ?? Area}: {message}");
+				var blankBefore = isBlankBefore ? "\r\n" : string.Empty;
+				Trace.WriteLine($"{blankBefore}[{DateTime.Now.ToString("HH:mm:ss.fff")}] {application ?? Application}({area ?? Area}): {message}");
 			}
 		}
 	}
