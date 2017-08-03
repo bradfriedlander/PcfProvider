@@ -23,7 +23,7 @@ namespace PcfProvider
 		public string AccessToken { get; private set; }
 
 		public Apps.RootObject AllApps { get; private set; }
-
+		public Organizations.RootObject AllOrganizations { get; private set; }
 		public Services.RootObject AllServices { get; private set; }
 
 		public PSCredential Credential { get; }
@@ -36,6 +36,15 @@ namespace PcfProvider
 
 		public string Uri { get; }
 
+		public List<Organizations.Entity> GetAllOrganizations(string container)
+		{
+			var allApps = new List<Organizations.Entity>();
+			var rawAppInfo = GetRawContainerContents(container);
+			AllOrganizations = JsonConvert.DeserializeObject<Organizations.RootObject>(rawAppInfo);
+			AllOrganizations.resources.ForEach(r => allApps.Add(r.entity));
+			return allApps;
+		}
+
 		public List<PcfAppInfo> GetAllApps(string container)
 		{
 			var allApps = new List<PcfAppInfo>();
@@ -45,7 +54,6 @@ namespace PcfProvider
 			GetAllServiceBindings(allApps);
 			return allApps;
 		}
-
 		public List<PcfServiceInfo> GetAllServices(string container)
 		{
 			var allServices = new List<PcfServiceInfo>();

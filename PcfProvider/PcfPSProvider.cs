@@ -23,7 +23,7 @@ namespace PcfProvider
 			}
 		}
 
-		private static readonly string[] firstLevelNames = new string[] { "apps", "routes", "services" };
+		private static readonly string[] firstLevelNames = new string[] { "apps", "organizations", "routes", "services" };
 		private static PcfDriveInfo currentDriveInfo;
 		private static string password;
 		private static string uri;
@@ -95,6 +95,10 @@ namespace PcfProvider
 				{
 					case "apps":
 						GetApps(containerName).ForEach(ai => WriteItemObject(ai, path, false));
+						break;
+
+					case "organizations":
+						GetOrganizations(containerName).ForEach(ai => WriteItemObject(ai, path, false));
 						break;
 
 					case "services":
@@ -342,6 +346,7 @@ namespace PcfProvider
 
 		private List<PcfAppInfo> GetApps(string container) => currentDriveInfo.Connection.GetAllApps(container);
 
+		private List<Organizations.Entity> GetOrganizations(string container) => currentDriveInfo.Connection.GetAllOrganizations(container);
 		private List<PcfServiceInfo> GetServices(string container) => currentDriveInfo.Connection.GetAllServices(container);
 
 		private string NormalizePath(string path) => path?.Replace(@".\", @"\") ?? string.Empty;
