@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Provider;
@@ -149,7 +148,8 @@ namespace PcfProvider
 		protected override string GetChildName(string path)
 		{
 			_trace.WriteLine($"Entering {nameof(GetChildName)}({path})");
-			return Path.GetFileName(path);
+			var containers = GetContainerNames(path);
+			return PathType.Drive == containers.Level ? "" : containers.ContainerNames.Last();
 		}
 
 		/// <summary>
@@ -199,6 +199,65 @@ namespace PcfProvider
 			}
 		}
 
+		protected override void GetItem(string path)
+		{
+			var containers = GetContainerNames(path);
+			var level = containers.Level;
+			string category;
+			string entityName;
+			switch (level)
+			{
+				case PathType.Drive:
+					WriteItemObject(currentDriveInfo, path, true);
+					break;
+
+				case PathType.Category:
+					var categories = FindMatchingNames(path);
+					if (categories.Length == 1)
+					{
+						WriteItemObject(categories[0], path, true);
+					}
+					break;
+
+				case PathType.PcfEntity:
+					category = containers.ContainerNames[0];
+					entityName = containers.ContainerNames.Last();
+					switch (category)
+					{
+						case "apps":
+							GetApps(category).Where(ai => ai.Name == entityName).ToList().ForEach(ai => WriteItemObject(ai, path, false));
+							break;
+
+						case "organizations":
+							GetOrganizations(category).Where(oi => oi.Name == entityName).ToList().ForEach(oi => WriteItemObject(oi, path, true));
+							break;
+
+						case "services":
+							GetServices(category).Where(si => si.Name == entityName).ToList().ForEach(si => WriteItemObject(si, path, false));
+							break;
+
+						default:
+							break;
+					}
+					break;
+
+				case PathType.PcfSubentity:
+					category = containers.ContainerNames[0];
+					if (secondLevelNames.ContainsKey(category))
+					{
+						var subentity = containers.ContainerNames[2];
+						if (secondLevelNames[category].Contains(subentity))
+						{
+							WriteItemObject(subentity, path, true);
+						}
+					}
+					break;
+
+				default:
+					break;
+			}
+		}
+
 		protected override bool HasChildItems(string path)
 		{
 			_trace.WriteLine($"Entering {nameof(HasChildItems)}({path})");
@@ -241,6 +300,25 @@ namespace PcfProvider
 		protected override bool IsItemContainer(string path)
 		{
 			_trace.WriteLine($"Entering {nameof(IsItemContainer)}({path})");
+			var containers = GetContainerNames(path);
+			var level = containers.Level;
+			switch (level)
+			{
+				case PathType.Drive:
+					return true;
+
+				case PathType.Category:
+					return true;
+
+				case PathType.PcfEntity:
+					return false;
+
+				case PathType.PcfSubentity:
+					return true;
+
+				default:
+					break;
+			}
 			return true;
 		}
 
@@ -265,6 +343,7 @@ namespace PcfProvider
 
 		protected override bool ItemExists(string path)
 		{
+			// TODO: This has a navigation bug (on tab expansion of third level).
 			_trace.WriteLine($"Entering {nameof(ItemExists)}({path})");
 			var containers = GetContainerNames(path);
 			var level = containers.Level;
@@ -310,16 +389,7 @@ namespace PcfProvider
 						path);
 					break;
 			}
-			//if (currentDriveInfo.PathIsDrive(path))
-			//{
-			//	return true;
-			//}
-			//if (FindMatchingNames(path).Length > 0)
-			//{
-			//	return true;
-			//}
-			// TODO: fix this for checking second level items
-			return true;
+			return false;
 		}
 
 		protected override object ItemExistsDynamicParameters(string path)
