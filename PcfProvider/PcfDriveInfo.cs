@@ -6,23 +6,46 @@ namespace PcfProvider
 {
 	internal class PcfDriveInfo : PSDriveInfo
 	{
-		public PcfDriveInfo(PSDriveInfo driveInfo, string uri, bool isLocal) : base(driveInfo)
+		/// <summary>
+		///     Initializes a new instance of the <see cref="PcfDriveInfo" /> class.
+		/// </summary>
+		/// <param name="driveInfo">This is the drive information as provided by PowerShell.</param>
+		/// <param name="uri">This is the URI of the PCF site.</param>
+		/// <param name="isLocal">If set to <c>true</c>, the drive is on the local (PcfDev) <inheritdoc /> of PCF.</param>
+		/// <param name="tracer">This is the class supporting diagnostic tracing.</param>
+		public PcfDriveInfo(PSDriveInfo driveInfo, string uri, bool isLocal, TraceTest tracer) : base(driveInfo)
 		{
 			Uri = uri;
 			DriveInfo = driveInfo;
-			Connection = new PcfConnection(driveInfo, uri, isLocal);
+			Tracer = tracer;
+			Connection = new PcfConnection(driveInfo, uri, isLocal, tracer);
 		}
 
 		public PcfConnection Connection { get; }
 
+		/// <summary>
+		///     This gets the drive information provided by PowerShell.
+		/// </summary>
+		/// <value>The drive information.</value>
 		public PSDriveInfo DriveInfo { get; }
 
-		public string Password { get; set; }
+		public TraceTest Tracer { get; }
 
+		/// <summary>
+		///     Gets or sets the URI of the PCF site.
+		/// </summary>
+		/// <value>This is the URI of the PCF site.</value>
 		public string Uri { get; set; }
 
+		/// <summary>
+		///     Gets or sets the name of the user of the PCF site.
+		/// </summary>
+		/// <value>This is the name of the user.</value>
 		public string UserName { get; set; }
 
+		/// <summary>
+		///     This is the path separator used by this provider.
+		/// </summary>
 		public const string PathSeparator = @"\";
 
 		/// <summary>

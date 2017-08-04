@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace PcfProvider
 {
+	/// <summary>
+	///     This class provides shared methods to support the provider.
+	/// </summary>
 	public static class Helpers
 	{
 		/// <summary>
@@ -21,17 +25,23 @@ namespace PcfProvider
 			return EqualityComparer<T>.Default.Equals(value, default(T));
 		}
 
-		/// <summary> <token method save saves the <paramref name="serializedJson"/> to a file using <see cref="DateTime.UtcNow"/> and <paramref
-		/// name="label"/>. </summary> <param name="label">This is the label for the file.</param> <param name="serializedJson">This is the serialized
-		/// json string to be saved.</param> <returns>This is always the unmodified <paramref name="serializedJson"/>. This is done to support fluent constructs.</returns>
+		/// <summary>
+		///     This method saves the <paramref name="serializedJson" /> to a file using <see cref="DateTime.UtcNow" /> and <paramref name="label" />.
+		/// </summary>
+		/// <param name="label">This is the label for the file.</param>
+		/// <param name="serializedJson">This is the serialized Json string to be saved.</param>
+		/// <returns>This is always the unmodified <paramref name="serializedJson" />. This is done to support fluent constructs.</returns>
 		public static string SaveJson(string label, string serializedJson)
 		{
-			var filename = $"{DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss")}_{label}.json";
-			if (File.Exists(filename))
+			if (Debugger.IsAttached)
 			{
-				File.Delete(filename);
+				var filename = $"{DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss")}_{label}.json";
+				if (File.Exists(filename))
+				{
+					File.Delete(filename);
+				}
+				File.AppendAllText(filename, serializedJson);
 			}
-			File.AppendAllText(filename, serializedJson);
 			return serializedJson;
 		}
 	}

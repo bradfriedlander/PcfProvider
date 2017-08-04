@@ -11,14 +11,25 @@ using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 
 namespace PcfProvider
 {
+	/// <summary>
+	///     This class provides the information and methods used to communicate with the PCF site.
+	/// </summary>
 	public class PcfConnection
 	{
-		public PcfConnection(PSDriveInfo driveInfo, string uri, bool isLocal)
+		/// <summary>
+		///     Initializes a new instance of the <see cref="PcfConnection" /> class.
+		/// </summary>
+		/// <param name="driveInfo">This is the drive information as provided by PowerShell.</param>
+		/// <param name="uri">This is the URI of the PCF site.</param>
+		/// <param name="isLocal">If set to <c>true</c>, the drive is on the local (PcfDev) <inheritdoc /> of PCF.</param>
+		/// <param name="tracer">This is the class supporting diagnostic tracing.</param>
+		public PcfConnection(PSDriveInfo driveInfo, string uri, bool isLocal, TraceTest tracer)
 		{
 			Uri = uri;
 			Credential = driveInfo.Credential;
 			ExpirationTime = DateTime.UtcNow;
 			IsLocal = isLocal;
+			Tracer = tracer;
 		}
 
 		public string AccessToken { get; private set; }
@@ -37,23 +48,44 @@ namespace PcfProvider
 
 		public string RefreshToken { get; private set; }
 
+		public TraceTest Tracer { get; }
+
 		public string Uri { get; }
 
 		public List<PcfAppInfo> GetAllApps(string container)
 		{
 			var allApps = new List<PcfAppInfo>();
-			var rawAppInfo = GetRawContainerContents(container);
-			AllApps = JsonConvert.DeserializeObject<Apps.RootObject>(rawAppInfo);
-			AllApps.Resources.ForEach(r => { r.AppInfo.AppGuid = r.Metadata.Guid; allApps.Add(r.AppInfo); });
-			GetAllServiceBindings(allApps);
+			if (Helpers.CheckNullOrEmpty(AllApps))
+			{
+				var rawAppInfo = GetRawContainerContents(container);
+				AllApps = JsonConvert.DeserializeObject<Apps.RootObject>(rawAppInfo);
+				AllApps.Resources.ForEach(r =>
+				{
+					r.AppInfo.AppGuid = r.Metadata.Guid;
+					allApps.Add(r.AppInfo);
+				});
+				GetAllServiceBindings(allApps);
+			}
+			else
+			{
+				Tracer.WriteLine($"==> {nameof(GetAllApps)}: Reusing contents of {nameof(AllApps)}.");
+				AllApps.Resources.ForEach(r => allApps.Add(r.AppInfo));
+			}
 			return allApps;
 		}
 
 		public List<PcfOrganization> GetAllOrganizations(string container)
 		{
 			var allApps = new List<PcfOrganization>();
-			var rawAppInfo = GetRawContainerContents(container);
-			AllOrganizations = JsonConvert.DeserializeObject<Organizations.RootObject>(rawAppInfo);
+			if (Helpers.CheckNullOrEmpty(AllOrganizations))
+			{
+				var rawAppInfo = GetRawContainerContents(container);
+				AllOrganizations = JsonConvert.DeserializeObject<Organizations.RootObject>(rawAppInfo);
+			}
+			else
+			{
+				Tracer.WriteLine($"==> {nameof(GetAllOrganizations)}: Reusing contents of {nameof(AllOrganizations)}.");
+			}
 			AllOrganizations.Resources.ForEach(r => allApps.Add(r.Organization));
 			return allApps;
 		}
@@ -61,8 +93,15 @@ namespace PcfProvider
 		public List<PcfServiceInfo> GetAllServices(string container)
 		{
 			var allServices = new List<PcfServiceInfo>();
-			var rawServiceInfo = GetRawContainerContents(container);
-			AllServices = JsonConvert.DeserializeObject<Services.RootObject>(rawServiceInfo);
+			if (Helpers.CheckNullOrEmpty(AllOrganizations))
+			{
+				var rawServiceInfo = GetRawContainerContents(container);
+				AllServices = JsonConvert.DeserializeObject<Services.RootObject>(rawServiceInfo);
+			}
+			else
+			{
+				Tracer.WriteLine($"==> {nameof(GetAllServices)}: Reusing contents of {nameof(AllServices)}.");
+			}
 			AllServices.Resources.ForEach(r => allServices.Add(r.ServiceInfo));
 			return allServices;
 		}

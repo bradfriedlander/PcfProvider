@@ -23,7 +23,21 @@ namespace PcfProvider
 			}
 		}
 
+		public enum PathType
+		{
+			Drive = 0,
+			Category,
+			PcfEntity,
+			PcfSubentity
+		}
+
 		private static readonly string[] firstLevelNames = new string[] { "apps", "organizations", "routes", "services" };
+
+		private static readonly Dictionary<string, string[]> secondLevelNames = new Dictionary<string, string[]>
+		{
+			["organizations"] = new string[] { "domains", "managers", "users" }
+		};
+
 		private static PcfDriveInfo currentDriveInfo;
 		private static string password;
 		private static string uri;
@@ -84,7 +98,7 @@ namespace PcfProvider
 				foreach (var name in firstLevelNames)
 				{
 					WriteItemObject(FirstLevelObject(name), path, true);
-					if(recurse)
+					if (recurse)
 					{
 						GetChildItems(name, recurse);
 					}
@@ -92,9 +106,9 @@ namespace PcfProvider
 				return;
 			}
 			var containerNames = GetContainerNames(path);
-			if (1 == containerNames.Length)
+			if (PathType.Category == containerNames.Level)
 			{
-				var containerName = containerNames.Last();
+				var containerName = containerNames.ContainerNames.Last();
 				switch (containerName)
 				{
 					case "apps":
@@ -102,20 +116,34 @@ namespace PcfProvider
 						break;
 
 					case "organizations":
-						GetOrganizations(containerName).ForEach(ai => WriteItemObject(ai, path, false));
+						GetOrganizations(containerName).ForEach(oi =>
+						{
+							WriteItemObject(oi, path, false);
+							if (recurse)
+							{
+								GetChildItems(oi.Name, recurse);
+							}
+						});
 						break;
 
 					case "services":
-						GetServices(containerName).ForEach(ai => WriteItemObject(ai, path, false));
+						GetServices(containerName).ForEach(si => WriteItemObject(si, path, false));
 						break;
 
 					default:
-						WriteItemObject("None", path, false);
+						//WriteItemObject("None", path, false);
 						break;
 				}
 				return;
 			}
-			return;
+			if (PathType.PcfEntity == containerNames.Level)
+			{
+				var category = containerNames.ContainerNames[0];
+				if (secondLevelNames.ContainsKey(category))
+				{
+					secondLevelNames[category].ToList().ForEach(c => WriteItemObject(c, path, true));
+				}
+			}
 		}
 
 		protected override string GetChildName(string path)
@@ -140,21 +168,33 @@ namespace PcfProvider
 				}
 			}
 			var containerNames = GetContainerNames(path);
-			if (1 == containerNames.Length)
+			if (PathType.Category == containerNames.Level)
 			{
-				var containerName = containerNames.Last();
+				var containerName = containerNames.ContainerNames.Last();
 				switch (containerName)
 				{
 					case "apps":
 						GetApps(containerName).ForEach(ai => WriteItemObject(ai.Name, path, false));
 						break;
 
+					case "organizations":
+						GetOrganizations(containerName).ForEach(oi => WriteItemObject(oi.Name, path, true));
+						break;
+
 					case "services":
-						GetServices(containerName).ForEach(ai => WriteItemObject(ai.Name, path, false));
+						GetServices(containerName).ForEach(si => WriteItemObject(si.Name, path, false));
 						break;
 
 					default:
 						break;
+				}
+			}
+			if (PathType.PcfEntity == containerNames.Level)
+			{
+				var category = containerNames.ContainerNames[0];
+				if (secondLevelNames.ContainsKey(category))
+				{
+					secondLevelNames[category].ToList().ForEach(ci => WriteItemObject(ci, path, true));
 				}
 			}
 		}
@@ -167,7 +207,35 @@ namespace PcfProvider
 				return true;
 			}
 			var containerNames = GetContainerNames(path);
-			return 2 < containerNames.Length;
+			switch (containerNames.Level)
+			{
+				case PathType.Drive:
+				case PathType.Category:
+					return true;
+
+				case PathType.PcfEntity:
+					var category = containerNames.ContainerNames[0];
+					return secondLevelNames.ContainsKey(category);
+
+				case PathType.PcfSubentity:
+					var firstlevel = containerNames.ContainerNames[0];
+					var thirdLevel = containerNames.ContainerNames.Last();
+					if (secondLevelNames.ContainsKey(firstlevel))
+					{
+						return secondLevelNames[firstlevel].Contains(thirdLevel);
+					}
+					return false;
+
+				default:
+					var message = $"'{containerNames.Level}' is not a supported enumeration.";
+					WriteErrorRecord(
+						new ArgumentOutOfRangeException(nameof(containerNames.Level), containerNames.Level, message),
+						message,
+						ErrorCategory.InvalidArgument,
+						path);
+					break;
+			}
+			return false;
 		}
 
 		protected override bool IsItemContainer(string path)
@@ -198,14 +266,58 @@ namespace PcfProvider
 		protected override bool ItemExists(string path)
 		{
 			_trace.WriteLine($"Entering {nameof(ItemExists)}({path})");
-			if (currentDriveInfo.PathIsDrive(path))
+			var containers = GetContainerNames(path);
+			var level = containers.Level;
+			string category;
+			string entityName;
+			switch (level)
 			{
-				return true;
+				case PathType.Drive:
+					return true;
+
+				case PathType.Category:
+					return FindMatchingNames(path).Length > 0;
+
+				case PathType.PcfEntity:
+					category = containers.ContainerNames[0];
+					entityName = containers.ContainerNames[1];
+					switch (category)
+					{
+						case "apps":
+							return GetApps(category).Any(ai => entityName == ai.Name);
+
+						case "services":
+							return GetServices(category).Any(si => entityName == si.Name);
+
+						case "organizations":
+							return GetOrganizations(category).Any(oi => entityName == oi.Name);
+
+						default:
+							break;
+					}
+					break;
+
+				case PathType.PcfSubentity:
+					category = containers.ContainerNames[0];
+					return secondLevelNames.ContainsKey(category);
+
+				default:
+					var message = $"'{level}' is not a supported enumeration.";
+					WriteErrorRecord(
+						new ArgumentOutOfRangeException(nameof(level), level, message),
+						message,
+						ErrorCategory.InvalidArgument,
+						path);
+					break;
 			}
-			if (FindMatchingNames(path).Length > 0)
-			{
-				return true;
-			}
+			//if (currentDriveInfo.PathIsDrive(path))
+			//{
+			//	return true;
+			//}
+			//if (FindMatchingNames(path).Length > 0)
+			//{
+			//	return true;
+			//}
 			// TODO: fix this for checking second level items
 			return true;
 		}
@@ -249,13 +361,12 @@ namespace PcfProvider
 				WriteErrorRecord(new ArgumentNullException(nameof(password)), "NoPassword", ErrorCategory.InvalidArgument, null);
 				return null;
 			}
-			currentDriveInfo = new PcfDriveInfo(drive, uri, isLocal)
+			currentDriveInfo = new PcfDriveInfo(drive, uri, isLocal, _trace)
 			{
 				UserName = userName,
-				Password = password
 			};
 			currentDriveInfo.CurrentLocation = currentDriveInfo.Root;
-			currentDriveInfo.Connection.Login(currentDriveInfo.UserName, currentDriveInfo.Password);
+			currentDriveInfo.Connection.Login(userName, password);
 			return currentDriveInfo;
 		}
 
@@ -295,7 +406,6 @@ namespace PcfProvider
 		protected override string NormalizeRelativePath(string path, string basePath)
 		{
 			_trace.WriteLine($"Entering {nameof(NormalizeRelativePath)}({path}, {basePath})");
-			// Normalize the paths first
 			string normalPath = NormalizePath(path);
 			normalPath = RemoveDriveFromPath(normalPath);
 			string normalBasePath = NormalizePath(basePath);
@@ -336,25 +446,31 @@ namespace PcfProvider
 			{
 				return firstLevelNames;
 			}
-			var regexString = Regex.Escape(path).Replace(@"\\\*", ".*");
+			var regexString = Regex.Escape(path).Replace(@"\\", "").Replace("*", ".*");
 			var regex = new Regex($"^{regexString}$");
 			return firstLevelNames.Where(fln => regex.IsMatch(fln)).Select(fln => fln).ToArray();
-		}
-
-		private static string[] GetContainerNames(string path)
-		{
-			return path.Split(new[] { PcfDriveInfo.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
 		}
 
 		private string FirstLevelObject(string value) => value;
 
 		private List<PcfAppInfo> GetApps(string container) => currentDriveInfo.Connection.GetAllApps(container);
 
+		private (PathType Level, string[] ContainerNames) GetContainerNames(string path)
+		{
+			if (currentDriveInfo.PathIsDrive(path))
+			{
+				return (PathType.Drive, new string[] { });
+			}
+			var normalizedPath = NormalizePath(path);
+			var containerNames = path.Split(new[] { PcfDriveInfo.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
+			return ((PathType)(containerNames.Length), containerNames);
+		}
+
 		private List<Organizations.PcfOrganization> GetOrganizations(string container) => currentDriveInfo.Connection.GetAllOrganizations(container);
 
 		private List<PcfServiceInfo> GetServices(string container) => currentDriveInfo.Connection.GetAllServices(container);
 
-		private string NormalizePath(string path) => path?.Replace(@".\", @"\") ?? string.Empty;
+		private string NormalizePath(string path) => path?.Replace("/", @"\").Replace(@".\", @"\") ?? string.Empty;
 
 		private bool PcfDoesNotExist(string root)
 		{

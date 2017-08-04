@@ -28,7 +28,7 @@ namespace PcfProvider.Organizations
 		public string Name { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string privateDomainsUrl { get; set; }
+		public string PrivateDomainsUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string QuotaDefinitionGuid { get; set; }
@@ -36,7 +36,7 @@ namespace PcfProvider.Organizations
 		public string QuotaDefinitionUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string spaceQuotaDefinitionsUrl { get; set; }
+		public string SpaceQuotaDefinitionsUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string SpacesUrl { get; set; }
