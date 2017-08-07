@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Provider;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
@@ -13,7 +14,7 @@ namespace PcfProvider
 	[CmdletProvider("Pcf", ProviderCapabilities.Credentials | ProviderCapabilities.ShouldProcess)]
 	public class PcfPSProvider : NavigationCmdletProvider, IContentCmdletProvider
 	{
-		public PcfPSProvider() : base()
+		public PcfPSProvider()
 		{
 			_trace.WriteLine($"Entering {nameof(PcfPSProvider)} constructor", isBlankBefore: true);
 			if (!Helpers.CheckNullOrEmpty(currentDriveInfo))
@@ -38,6 +39,7 @@ namespace PcfProvider
 		};
 
 		private static PcfDriveInfo currentDriveInfo;
+		private static bool isLogItems;
 		private static string password;
 		private static string uri;
 		private static string userName;
@@ -81,7 +83,8 @@ namespace PcfProvider
 
 		protected override string[] ExpandPath(string path)
 		{
-			return FindMatchingNames(path);
+			_trace.WriteLine($"Entering {nameof(ExpandPath)}({path})");
+			return LogReturn(() => FindMatchingNames(path));
 		}
 
 		/// <summary>
@@ -117,7 +120,7 @@ namespace PcfProvider
 					case "organizations":
 						GetOrganizations(containerName).ForEach(oi =>
 						{
-							WriteItemObject(oi, path, false);
+							WriteItemObject(oi, path, true);
 							if (recurse)
 							{
 								GetChildItems(oi.Name, recurse);
@@ -149,7 +152,7 @@ namespace PcfProvider
 		{
 			_trace.WriteLine($"Entering {nameof(GetChildName)}({path})");
 			var containers = GetContainerNames(path);
-			return PathType.Drive == containers.Level ? "" : containers.ContainerNames.Last();
+			return LogReturn(() => PathType.Drive == containers.Level ? "" : containers.ContainerNames.Last());
 		}
 
 		/// <summary>
@@ -201,6 +204,7 @@ namespace PcfProvider
 
 		protected override void GetItem(string path)
 		{
+			_trace.WriteLine($"Entering {nameof(GetItem)}({path})");
 			var containers = GetContainerNames(path);
 			var level = containers.Level;
 			string category;
@@ -235,9 +239,6 @@ namespace PcfProvider
 						case "services":
 							GetServices(category).Where(si => si.Name == entityName).ToList().ForEach(si => WriteItemObject(si, path, false));
 							break;
-
-						default:
-							break;
 					}
 					break;
 
@@ -252,9 +253,6 @@ namespace PcfProvider
 						}
 					}
 					break;
-
-				default:
-					break;
 			}
 		}
 
@@ -263,27 +261,27 @@ namespace PcfProvider
 			_trace.WriteLine($"Entering {nameof(HasChildItems)}({path})");
 			if (currentDriveInfo.PathIsDrive(path))
 			{
-				return true;
+				return LogReturn(() => true);
 			}
 			var containerNames = GetContainerNames(path);
 			switch (containerNames.Level)
 			{
 				case PathType.Drive:
 				case PathType.Category:
-					return true;
+					return LogReturn(() => true);
 
 				case PathType.PcfEntity:
 					var category = containerNames.ContainerNames[0];
-					return secondLevelNames.ContainsKey(category);
+					return LogReturn(() => secondLevelNames.ContainsKey(category));
 
 				case PathType.PcfSubentity:
 					var firstlevel = containerNames.ContainerNames[0];
 					var thirdLevel = containerNames.ContainerNames.Last();
 					if (secondLevelNames.ContainsKey(firstlevel))
 					{
-						return secondLevelNames[firstlevel].Contains(thirdLevel);
+						return LogReturn(() => secondLevelNames[firstlevel].Contains(thirdLevel));
 					}
-					return false;
+					return LogReturn(() => false);
 
 				default:
 					var message = $"'{containerNames.Level}' is not a supported enumeration.";
@@ -294,47 +292,36 @@ namespace PcfProvider
 						path);
 					break;
 			}
-			return false;
+			return LogReturn(() => false);
 		}
 
 		protected override bool IsItemContainer(string path)
 		{
 			_trace.WriteLine($"Entering {nameof(IsItemContainer)}({path})");
 			var containers = GetContainerNames(path);
-			var level = containers.Level;
-			switch (level)
+			switch (containers.Level)
 			{
 				case PathType.Drive:
-					return true;
-
 				case PathType.Category:
-					return true;
+					return LogReturn(() => true);
 
 				case PathType.PcfEntity:
-					return false;
+					var category = containers.ContainerNames[0];
+					return LogReturn(() => secondLevelNames.ContainsKey(category));
 
 				case PathType.PcfSubentity:
-					return true;
-
-				default:
-					break;
+					return LogReturn(() => true);
 			}
-			return true;
+			return LogReturn(() => false);
 		}
 
-		//protected override string GetParentPath(string path, string root)
-		//{
-		//	_trace.WriteLine($"Entering {nameof(GetParentPath)}({path}, {root})");
-		//	if (!string.IsNullOrEmpty(root) && !path.Contains(root))
-		//	{
-		//		return null;
-		//	}
-		//	if (currentDriveInfo.PathIsDrive(path))
-		//	{
-		//		return null;
-		//	}
-		//	return path.Substring(0, path.LastIndexOf(PcfDriveInfo.PathSeparator, StringComparison.OrdinalIgnoreCase));
-		//}
+		/// <summary>
+		///     Joins two strings with a provider specific path separator.
+		/// </summary>
+		/// <param name="parent">The parent segment of a path to be joined with the child.</param>
+		/// <param name="child">The child segment of a path to be joined with the parent.</param>
+		/// <returns>A string that represents the parent and child segments of the path joined by a path separator.</returns>
+
 		protected override bool IsValidPath(string path)
 		{
 			_trace.WriteLine($"Entering {nameof(IsValidPath)}({path})");
@@ -343,7 +330,6 @@ namespace PcfProvider
 
 		protected override bool ItemExists(string path)
 		{
-			// TODO: This has a navigation bug (on tab expansion of third level).
 			_trace.WriteLine($"Entering {nameof(ItemExists)}({path})");
 			var containers = GetContainerNames(path);
 			var level = containers.Level;
@@ -352,10 +338,10 @@ namespace PcfProvider
 			switch (level)
 			{
 				case PathType.Drive:
-					return true;
+					return LogReturn(() => true);
 
 				case PathType.Category:
-					return FindMatchingNames(path).Length > 0;
+					return LogReturn(() => FindMatchingNames(path).Length > 0);
 
 				case PathType.PcfEntity:
 					category = containers.ContainerNames[0];
@@ -363,22 +349,19 @@ namespace PcfProvider
 					switch (category)
 					{
 						case "apps":
-							return GetApps(category).Any(ai => entityName == ai.Name);
+							return LogReturn(() => GetApps(category).Any(ai => entityName == ai.Name));
 
 						case "services":
-							return GetServices(category).Any(si => entityName == si.Name);
+							return LogReturn(() => GetServices(category).Any(si => entityName == si.Name));
 
 						case "organizations":
-							return GetOrganizations(category).Any(oi => entityName == oi.Name);
-
-						default:
-							break;
+							return LogReturn(() => GetOrganizations(category).Any(oi => entityName == oi.Name));
 					}
 					break;
 
 				case PathType.PcfSubentity:
 					category = containers.ContainerNames[0];
-					return secondLevelNames.ContainsKey(category);
+					return LogReturn(() => secondLevelNames.ContainsKey(category));
 
 				default:
 					var message = $"'{level}' is not a supported enumeration.";
@@ -389,7 +372,7 @@ namespace PcfProvider
 						path);
 					break;
 			}
-			return false;
+			return LogReturn(() => false);
 		}
 
 		protected override object ItemExistsDynamicParameters(string path)
@@ -412,6 +395,7 @@ namespace PcfProvider
 				return null;
 			}
 			var newDriveParameters = DynamicParameters as RuntimeDefinedParameterDictionary;
+			isLogItems = newDriveParameters["IsLogItems"].IsSet ? ((SwitchParameter)(newDriveParameters["IsLogItems"].Value)).ToBool() : false;
 			var isLocal = newDriveParameters["IsLocal"].IsSet ? ((SwitchParameter)(newDriveParameters["IsLocal"].Value)).ToBool() : false;
 			uri = isLocal ? "api.local.pcfdev.io" : newDriveParameters["Uri"].IsSet ? newDriveParameters["Uri"].Value.ToString() : null;
 			if (string.IsNullOrEmpty(uri))
@@ -470,6 +454,8 @@ namespace PcfProvider
 			parameters.Add("Password", runDefParm);
 			runDefParm = new RuntimeDefinedParameter("IsLocal", typeof(SwitchParameter), optional);
 			parameters.Add("IsLocal", runDefParm);
+			runDefParm = new RuntimeDefinedParameter("IsLogItems", typeof(SwitchParameter), optional);
+			parameters.Add("IsLogItems", runDefParm);
 			return parameters;
 		}
 
@@ -489,7 +475,7 @@ namespace PcfProvider
 			{
 				return null;
 			}
-			return normalPath.Remove(0, normalBasePath.Length);
+			return LogReturn(() => normalPath.Remove(0, normalBasePath.Length));
 		}
 
 		protected override PSDriveInfo RemoveDrive(PSDriveInfo drive)
@@ -508,6 +494,35 @@ namespace PcfProvider
 			// TODO: log out of PCF
 			currentDriveInfo = null;
 			return pcfDrive;
+		}
+
+		/// <summary>
+		///     This method writes the <paramref name="item" /> to the PowerShell object output after logging the request using <see
+		///     cref="CmdletProvider.WriteItemObject(object, string, bool)" />.
+		/// </summary>
+		/// <param name="item">This is the item object to return to the PowerShell pipeline.</param>
+		/// <param name="path">This is the path of <paramref name="item" />.</param>
+		/// <param name="isContainer">If set to <c>true</c>, <paramref name="item" /> is a container.</param>
+		/// <param name="callerName">This is the name of the calling method.</param>
+		protected void WriteItemObject(object item, string path, bool isContainer, [CallerMemberName]string callerName = "")
+		{
+			var itemType = item.GetType().ToString();
+			string itemName;
+			switch (itemType)
+			{
+				case "System.String":
+					itemName = item as string;
+					break;
+
+				default:
+					itemName = ((dynamic)item).Name;
+					break;
+			}
+			if (isLogItems)
+			{
+				_trace.WriteLine($"[{callerName}]: {nameof(WriteItemObject)}('{itemName}', '{path}', {isContainer})");
+			}
+			base.WriteItemObject(item, path, isContainer);
 		}
 
 		private static string[] FindMatchingNames(string path)
@@ -540,6 +555,16 @@ namespace PcfProvider
 
 		private List<PcfServiceInfo> GetServices(string container) => currentDriveInfo.Connection.GetAllServices(container);
 
+		private T LogReturn<T>(Func<T> function, [CallerMemberName]string callerName = "")
+		{
+			T returnValue = function();
+			if (isLogItems)
+			{
+				_trace.WriteLine($"[{callerName}] returned '{returnValue}'");
+			}
+			return returnValue;
+		}
+
 		private string NormalizePath(string path) => path?.Replace("/", @"\").Replace(@".\", @"\") ?? string.Empty;
 
 		private bool PcfDoesNotExist(string root)
@@ -565,30 +590,5 @@ namespace PcfProvider
 		{
 			WriteError(new ErrorRecord(exception, message, category, target));
 		}
-
-		//protected override object NewItemDynamicParameters(string path, string itemTypeName, object newItemValue)
-		//{
-		//	_trace.WriteLine($"Entering {nameof(NewItemDynamicParameters)}");
-		//	var dic = new RuntimeDefinedParameterDictionary();
-		//	ParameterAttribute attrib = null;
-		//	Collection<Attribute> col = null;
-		//	RuntimeDefinedParameter runDefParm = null;
-		//	attrib = new ParameterAttribute()
-		//	{
-		//		ParameterSetName = "MyParameters",
-		//		Mandatory = false,
-		//		ValueFromPipeline = false
-		//	};
-		//	col = new Collection<Attribute>
-		//	{
-		//		attrib
-		//	};
-		//	runDefParm = new RuntimeDefinedParameter("MyParameter1", typeof(string), col);
-		//	dic.Add("MyParameter1", runDefParm);
-		//	runDefParm = new RuntimeDefinedParameter("MyParameter2", typeof(string), col);
-		//	dic.Add("MyParameter2", runDefParm);
-		//	_trace.WriteLine("END NewItemDynamicParameters");
-		//	return dic;
-		//}
 	}
 }

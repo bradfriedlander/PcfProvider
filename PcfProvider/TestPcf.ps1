@@ -2,8 +2,8 @@
 Get-PSProvider
 echo "Create PCF drive."
 #New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Get-Content 'user.txt') -Password (Read-Host "Password")
-New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Get-Content 'user.txt') -Password (Get-Content 'password.txt')
-#New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -IsLocal
+New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Get-Content 'user.txt') -Password (Get-Content 'password.txt') #-IsLogItems
+#New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -IsLocal -IsLogItems
 echo "dir PCF:"
 dir PCF:
 echo "dir PCF:\apps"
