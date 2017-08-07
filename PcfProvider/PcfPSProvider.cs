@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
+using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
 namespace PcfProvider
 {
@@ -28,7 +29,8 @@ namespace PcfProvider
 			Drive = 0,
 			Category,
 			PcfEntity,
-			PcfSubentity
+			PcfSubCategory,
+			PcfSubEntity
 		}
 
 		private static readonly string[] firstLevelNames = new string[] { "apps", "organizations", "routes", "services" };
@@ -95,56 +97,69 @@ namespace PcfProvider
 		protected override void GetChildItems(string path, bool recurse)
 		{
 			_trace.WriteLine($"Entering {nameof(GetChildItems)}({path}, {recurse.ToString()})");
-			if (currentDriveInfo.PathIsDrive(path))
+			var containers = GetContainerNames(path);
+			var count = containers.ContainerNames.Length;
+			string category = count > 0 ? containers.ContainerNames[0] : "";
+			string containerName = count > 0 ? containers.ContainerNames.Last() : "";
+			switch (containers.Level)
 			{
-				foreach (var name in firstLevelNames)
-				{
-					WriteItemObject(FirstLevelObject(name), path, true);
-					if (recurse)
+				case PathType.Drive:
+					foreach (var name in firstLevelNames)
 					{
-						GetChildItems(name, recurse);
-					}
-				}
-				return;
-			}
-			var containerNames = GetContainerNames(path);
-			if (PathType.Category == containerNames.Level)
-			{
-				var containerName = containerNames.ContainerNames.Last();
-				switch (containerName)
-				{
-					case "apps":
-						GetApps(containerName).ForEach(ai => WriteItemObject(ai, path, false));
-						break;
-
-					case "organizations":
-						GetOrganizations(containerName).ForEach(oi =>
+						WriteItemObject(FirstLevelObject(name), path, true);
+						if (recurse)
 						{
-							WriteItemObject(oi, path, true);
-							if (recurse)
+							GetChildItems(name, recurse);
+						}
+					}
+					break;
+
+				case PathType.Category:
+					switch (containerName)
+					{
+						case "apps":
+							GetApps(containerName).ForEach(ai => WriteItemObject(ai, path, false));
+							break;
+
+						case "organizations":
+							GetOrganizations(containerName).ForEach(oi =>
 							{
-								GetChildItems(oi.Name, recurse);
-							}
-						});
-						break;
+								WriteItemObject(oi, path, true);
+								if (recurse)
+								{
+									GetChildItems(oi.Name, recurse);
+								}
+							});
+							break;
 
-					case "services":
-						GetServices(containerName).ForEach(si => WriteItemObject(si, path, false));
-						break;
+						case "services":
+							GetServices(containerName).ForEach(si => WriteItemObject(si, path, false));
+							break;
+					}
+					break;
 
-					default:
-						//WriteItemObject("None", path, false);
-						break;
-				}
-				return;
-			}
-			if (PathType.PcfEntity == containerNames.Level)
-			{
-				var category = containerNames.ContainerNames[0];
-				if (secondLevelNames.ContainsKey(category))
-				{
-					secondLevelNames[category].ToList().ForEach(c => WriteItemObject(c, path, true));
-				}
+				case PathType.PcfEntity:
+					if (secondLevelNames.ContainsKey(category))
+					{
+						secondLevelNames[category].ToList().ForEach(c => WriteItemObject(c, path, true));
+					}
+					break;
+
+				case PathType.PcfSubCategory:
+					if (secondLevelNames.ContainsKey(category) && secondLevelNames[category].Contains(containerName))
+					{
+						var organizationName = containers.ContainerNames[1];
+						switch (containerName)
+						{
+							case "users":
+								GetUsers(organizationName).ForEach(ui => WriteItemObject(ui, path, false));
+								break;
+						}
+					}
+					break;
+
+				case PathType.PcfSubEntity:
+					break;
 			}
 		}
 
@@ -163,42 +178,58 @@ namespace PcfProvider
 		protected override void GetChildNames(string path, ReturnContainers returnContainers)
 		{
 			_trace.WriteLine($"Entering {nameof(GetChildNames)}({path}, returnContainers)");
-			if (currentDriveInfo.PathIsDrive(path))
+			var containers = GetContainerNames(path);
+			var count = containers.ContainerNames.Length;
+			string category = count > 0 ? containers.ContainerNames[0] : "";
+			string containerName = count > 0 ? containers.ContainerNames.Last() : "";
+			switch (containers.Level)
 			{
-				foreach (var name in firstLevelNames)
-				{
-					WriteItemObject(FirstLevelObject(name), path, true);
-				}
-			}
-			var containerNames = GetContainerNames(path);
-			if (PathType.Category == containerNames.Level)
-			{
-				var containerName = containerNames.ContainerNames.Last();
-				switch (containerName)
-				{
-					case "apps":
-						GetApps(containerName).ForEach(ai => WriteItemObject(ai.Name, path, false));
-						break;
+				case PathType.Drive:
+					foreach (var name in firstLevelNames)
+					{
+						WriteItemObject(FirstLevelObject(name), path, true);
+					}
+					break;
 
-					case "organizations":
-						GetOrganizations(containerName).ForEach(oi => WriteItemObject(oi.Name, path, true));
-						break;
+				case PathType.Category:
+					switch (containerName)
+					{
+						case "apps":
+							GetApps(containerName).ForEach(ai => WriteItemObject(ai.Name, path, false));
+							break;
 
-					case "services":
-						GetServices(containerName).ForEach(si => WriteItemObject(si.Name, path, false));
-						break;
+						case "organizations":
+							GetOrganizations(containerName).ForEach(oi => WriteItemObject(oi.Name, path, true));
+							break;
 
-					default:
-						break;
-				}
-			}
-			if (PathType.PcfEntity == containerNames.Level)
-			{
-				var category = containerNames.ContainerNames[0];
-				if (secondLevelNames.ContainsKey(category))
-				{
-					secondLevelNames[category].ToList().ForEach(ci => WriteItemObject(ci, path, true));
-				}
+						case "services":
+							GetServices(containerName).ForEach(si => WriteItemObject(si.Name, path, false));
+							break;
+					}
+					break;
+
+				case PathType.PcfEntity:
+					if (secondLevelNames.ContainsKey(category))
+					{
+						secondLevelNames[category].ToList().ForEach(ci => WriteItemObject(ci, path, true));
+					}
+					break;
+
+				case PathType.PcfSubCategory:
+					if (secondLevelNames.ContainsKey(category) && secondLevelNames[category].Contains(containerName))
+					{
+						var organizationName = containers.ContainerNames[1];
+						switch (containerName)
+						{
+							case "users":
+								GetUsers(organizationName).ForEach(ui => WriteItemObject(ui.Name, path, false));
+								break;
+						}
+					}
+					break;
+
+				case PathType.PcfSubEntity:
+					break;
 			}
 		}
 
@@ -207,7 +238,9 @@ namespace PcfProvider
 			_trace.WriteLine($"Entering {nameof(GetItem)}({path})");
 			var containers = GetContainerNames(path);
 			var level = containers.Level;
-			string category;
+			var count = containers.ContainerNames.Length;
+			string category = count > 0 ? containers.ContainerNames[0] : "";
+			string containerName = count > 0 ? containers.ContainerNames.Last() : "";
 			string entityName;
 			switch (level)
 			{
@@ -242,7 +275,7 @@ namespace PcfProvider
 					}
 					break;
 
-				case PathType.PcfSubentity:
+				case PathType.PcfSubCategory:
 					category = containers.ContainerNames[0];
 					if (secondLevelNames.ContainsKey(category))
 					{
@@ -252,6 +285,10 @@ namespace PcfProvider
 							WriteItemObject(subentity, path, true);
 						}
 					}
+					break;
+
+				case PathType.PcfSubEntity:
+					// TODO: Add support
 					break;
 			}
 		}
@@ -263,30 +300,35 @@ namespace PcfProvider
 			{
 				return LogReturn(() => true);
 			}
-			var containerNames = GetContainerNames(path);
-			switch (containerNames.Level)
+			var containers = GetContainerNames(path);
+			var count = containers.ContainerNames.Length;
+			string category = count > 0 ? containers.ContainerNames[0] : "";
+			string containerName = count > 0 ? containers.ContainerNames.Last() : "";
+			switch (containers.Level)
 			{
 				case PathType.Drive:
 				case PathType.Category:
 					return LogReturn(() => true);
 
 				case PathType.PcfEntity:
-					var category = containerNames.ContainerNames[0];
 					return LogReturn(() => secondLevelNames.ContainsKey(category));
 
-				case PathType.PcfSubentity:
-					var firstlevel = containerNames.ContainerNames[0];
-					var thirdLevel = containerNames.ContainerNames.Last();
-					if (secondLevelNames.ContainsKey(firstlevel))
+				case PathType.PcfSubCategory:
+					var thirdLevel = containers.ContainerNames.Last();
+					if (secondLevelNames.ContainsKey(category))
 					{
-						return LogReturn(() => secondLevelNames[firstlevel].Contains(thirdLevel));
+						return LogReturn(() => secondLevelNames[category].Contains(thirdLevel));
 					}
 					return LogReturn(() => false);
 
+				case PathType.PcfSubEntity:
+					// TODO: Add support
+					break;
+
 				default:
-					var message = $"'{containerNames.Level}' is not a supported enumeration.";
+					var message = $"'{containers.Level}' is not a supported enumeration.";
 					WriteErrorRecord(
-						new ArgumentOutOfRangeException(nameof(containerNames.Level), containerNames.Level, message),
+						new ArgumentOutOfRangeException(nameof(containers.Level), containers.Level, message),
 						message,
 						ErrorCategory.InvalidArgument,
 						path);
@@ -309,8 +351,11 @@ namespace PcfProvider
 					var category = containers.ContainerNames[0];
 					return LogReturn(() => secondLevelNames.ContainsKey(category));
 
-				case PathType.PcfSubentity:
+				case PathType.PcfSubCategory:
 					return LogReturn(() => true);
+
+				case PathType.PcfSubEntity:
+					return LogReturn(() => false);
 			}
 			return LogReturn(() => false);
 		}
@@ -332,9 +377,12 @@ namespace PcfProvider
 		{
 			_trace.WriteLine($"Entering {nameof(ItemExists)}({path})");
 			var containers = GetContainerNames(path);
+			var count = containers.ContainerNames.Length;
 			var level = containers.Level;
-			string category;
-			string entityName;
+			string category = count > 0 ? containers.ContainerNames[0] : "";
+			string containerName = count > 0 ? containers.ContainerNames.Last() : "";
+			string entityName = count > 1 ? containers.ContainerNames[1] : "";
+			string subCategory = count > 2 ? containers.ContainerNames[2] : "";
 			switch (level)
 			{
 				case PathType.Drive:
@@ -344,8 +392,6 @@ namespace PcfProvider
 					return LogReturn(() => FindMatchingNames(path).Length > 0);
 
 				case PathType.PcfEntity:
-					category = containers.ContainerNames[0];
-					entityName = containers.ContainerNames[1];
 					switch (category)
 					{
 						case "apps":
@@ -359,9 +405,27 @@ namespace PcfProvider
 					}
 					break;
 
-				case PathType.PcfSubentity:
-					category = containers.ContainerNames[0];
+				case PathType.PcfSubCategory:
 					return LogReturn(() => secondLevelNames.ContainsKey(category));
+
+				case PathType.PcfSubEntity:
+					if (secondLevelNames.ContainsKey(category) && secondLevelNames[category].Contains(subCategory))
+					{
+						switch (subCategory)
+						{
+							case "users":
+								return LogReturn(() => GetUsers(containers.ContainerNames[1]).Any(ui => ui.Name == containerName));
+
+							case "domains":
+								// TODO: add support
+								return LogReturn(() => false);
+
+							case "managers":
+								// TODO: add support
+								return LogReturn(() => false);
+						}
+					}
+					return LogReturn(() => false);
 
 				default:
 					var message = $"'{level}' is not a supported enumeration.";
@@ -554,6 +618,8 @@ namespace PcfProvider
 		private List<Organizations.PcfOrganization> GetOrganizations(string container) => currentDriveInfo.Connection.GetAllOrganizations(container);
 
 		private List<PcfServiceInfo> GetServices(string container) => currentDriveInfo.Connection.GetAllServices(container);
+
+		private List<PcfUserInfo> GetUsers(string organization) => currentDriveInfo.Connection.GetAllUsers(organization);
 
 		private T LogReturn<T>(Func<T> function, [CallerMemberName]string callerName = "")
 		{

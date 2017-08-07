@@ -86,6 +86,10 @@
     <Compile Include="Services\Resource.cs" />
     <Compile Include="Services\RootObject.cs" />
     <Compile Include="TraceTest.cs" />
+    <Compile Include="Users\Metadata.cs" />
+    <Compile Include="Users\PcfUserInfo.cs" />
+    <Compile Include="Users\Resource.cs" />
+    <Compile Include="Users\RootObject.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="PcfPSProvider.psd1">

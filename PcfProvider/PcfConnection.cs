@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Management.Automation;
 using System.Net;
 using System.Text;
@@ -8,6 +9,7 @@ using Newtonsoft.Json;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
 using PcfOrganization = PcfProvider.Organizations.PcfOrganization;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
+using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
 namespace PcfProvider
 {
@@ -112,6 +114,19 @@ namespace PcfProvider
 			SaveAuthorization(authenticationResults);
 		}
 
+		internal List<PcfUserInfo> GetAllUsers(string organization)
+		{
+			var orgs = GetAllOrganizations("organizations");
+			var org = orgs.FirstOrDefault(oi => oi.Name == organization);
+			if (Helpers.CheckNullOrEmpty(org))
+			{
+				return new List<PcfUserInfo>();
+			}
+			var rawUserInfo = GetRawContainerContents(organization, org.UsersUrl);
+			var allUserInfo = JsonConvert.DeserializeObject<Users.RootObject>(rawUserInfo);
+			return allUserInfo.Resources.Select(r => r.UserInfo).ToList();
+		}
+
 		private void GetAllServiceBindings(List<PcfAppInfo> allApps)
 		{
 			foreach (var app in allApps)
@@ -143,12 +158,18 @@ namespace PcfProvider
 
 		private OAuthResponse GetOauthReponse(string data)
 		{
-			var httpType = IsLocal ? "http" : "https";
-			var request = (HttpWebRequest)WebRequest.Create($"{httpType}://login.{Uri}/oauth/token");
+			var uri = IsLocal
+				? $"http://login.{Uri}/oauth/token"
+				: $"https://login.{Uri}/oauth/token";
+			var request = (HttpWebRequest)WebRequest.Create(uri);
 			request.Headers.Add("Authorization", $"Basic {GetAuthHeader("cf")}");
 			request.Accept = "Application/json";
 			request.ContentType = "application/x-www-form-urlencoded";
 			request.Method = "POST";
+			if (IsLocal)
+			{
+				//request.Host = "system";
+			}
 			byte[] dataStream = Encoding.UTF8.GetBytes(data);
 			request.ContentLength = dataStream.Length;
 			using (var newStream = request.GetRequestStream())
