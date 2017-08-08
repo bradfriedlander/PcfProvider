@@ -8,6 +8,7 @@ using System.Text;
 using Newtonsoft.Json;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
 using PcfOrganization = PcfProvider.Organizations.PcfOrganization;
+using PcfServiceBinding = PcfProvider.ServiceBindings.PcfServiceBinding;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
@@ -56,24 +57,17 @@ namespace PcfProvider
 
 		public List<PcfAppInfo> GetAllApps(string container)
 		{
-			var allApps = new List<PcfAppInfo>();
 			if (Helpers.CheckNullOrEmpty(AllApps))
 			{
-				var rawAppInfo = GetRawContainerContents(container);
-				AllApps = JsonConvert.DeserializeObject<Apps.RootObject>(rawAppInfo);
-				AllApps.Resources.ForEach(r =>
-				{
-					r.Info.AppGuid = r.Metadata.Guid;
-					allApps.Add(r.Info);
-				});
-				GetAllServiceBindings(allApps);
+				AllApps = GetAllInfo<PcfAppInfo, Apps.RootObject>(container);
+				AllApps.Resources.ForEach(r => r.Info.AppGuid = r.Metadata.Guid);
+				GetAllServiceBindings();
 			}
 			else
 			{
 				Tracer.WriteLine($"==> {nameof(GetAllApps)}: Reusing contents of {nameof(AllApps)}.");
-				AllApps.Resources.ForEach(r => allApps.Add(r.Info));
 			}
-			return allApps;
+			return AllApps.Resources.Select(r => r.Info).ToList();
 		}
 
 		public List<PcfOrganization> GetAllOrganizations(string container)
@@ -81,15 +75,13 @@ namespace PcfProvider
 			var allApps = new List<PcfOrganization>();
 			if (Helpers.CheckNullOrEmpty(AllOrganizations))
 			{
-				var rawAppInfo = GetRawContainerContents(container);
-				AllOrganizations = JsonConvert.DeserializeObject<Organizations.RootObject>(rawAppInfo);
+				AllOrganizations = GetAllInfo<PcfOrganization, Organizations.RootObject>(container);
 			}
 			else
 			{
 				Tracer.WriteLine($"==> {nameof(GetAllOrganizations)}: Reusing contents of {nameof(AllOrganizations)}.");
 			}
-			AllOrganizations.Resources.ForEach(r => allApps.Add(r.Info));
-			return allApps;
+			return AllOrganizations.Resources.Select(r => r.Info).ToList();
 		}
 
 		public List<PcfServiceInfo> GetAllServices(string container)
@@ -97,15 +89,13 @@ namespace PcfProvider
 			var allServices = new List<PcfServiceInfo>();
 			if (Helpers.CheckNullOrEmpty(AllOrganizations))
 			{
-				var rawServiceInfo = GetRawContainerContents(container);
-				AllServices = JsonConvert.DeserializeObject<Services.RootObject>(rawServiceInfo);
+				AllServices = GetAllInfo<PcfServiceInfo, Services.RootObject>(container);
 			}
 			else
 			{
 				Tracer.WriteLine($"==> {nameof(GetAllServices)}: Reusing contents of {nameof(AllServices)}.");
 			}
-			AllServices.Resources.ForEach(r => allServices.Add(r.Info));
-			return allServices;
+			return AllServices.Resources.Select(r => r.Info).ToList();
 		}
 
 		public void Login(string username, string password)
@@ -114,26 +104,36 @@ namespace PcfProvider
 			SaveAuthorization(authenticationResults);
 		}
 
+		internal List<TInfo> GetAll<TInfo, TRoot>(string container, string uri = "") where TRoot : InfoBase.RootObject<TInfo>
+		{
+			var allInfo = GetAllInfo<TInfo, TRoot>(container, uri);
+			return allInfo.Resources.Select(r => r.Info).ToList();
+		}
+
+		internal TRoot GetAllInfo<TInfo, TRoot>(string container, string uri = "") where TRoot : InfoBase.RootObject<TInfo>
+		{
+			var rawInfo = GetRawContainerContents(container, uri);
+			return JsonConvert.DeserializeObject<TRoot>(rawInfo);
+		}
+
 		internal List<PcfUserInfo> GetAllUsers(string organization)
 		{
 			var orgs = GetAllOrganizations("organizations");
-			var org = orgs.FirstOrDefault(oi => oi.Name == organization);
+			var org = orgs.Find(oi => oi.Name == organization);
 			if (Helpers.CheckNullOrEmpty(org))
 			{
 				return new List<PcfUserInfo>();
 			}
-			var rawUserInfo = GetRawContainerContents(organization, org.UsersUrl);
-			var allUserInfo = JsonConvert.DeserializeObject<Users.RootObject>(rawUserInfo);
+			var allUserInfo = GetAllInfo<PcfUserInfo, Users.RootObject>(organization, org.UsersUrl);
 			return allUserInfo.Resources.Select(r => r.Info).ToList();
 		}
 
-		private void GetAllServiceBindings(List<PcfAppInfo> allApps)
+		private void GetAllServiceBindings()
 		{
-			foreach (var app in allApps)
+			foreach (var app in AllApps.Resources.Select(r => r.Info))
 			{
 				var serviceBindingUrl = app.ServiceBindingsUrl;
-				var rawServiceBindingInfo = GetRawContainerContents("service_bindings", serviceBindingUrl);
-				var serviceBindings = JsonConvert.DeserializeObject<ServiceBindings.RootObject>(rawServiceBindingInfo);
+				var serviceBindings = GetAllInfo<PcfServiceBinding, ServiceBindings.RootObject>("service_bindings", serviceBindingUrl);
 				foreach (var serviceBinding in serviceBindings.Resources)
 				{
 					var serviceInstanceUrl = serviceBinding.Info.service_instance_url;
