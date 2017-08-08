@@ -57,14 +57,13 @@
     <Compile Include="Apps\DockerCredentials.cs" />
     <Compile Include="Apps\PcfAppInfo.cs" />
     <Compile Include="Apps\EnvironmentJson.cs" />
-    <Compile Include="Apps\Metadata.cs" />
-    <Compile Include="Apps\Resource.cs" />
     <Compile Include="Apps\RootObject.cs" />
     <Compile Include="Helpers.cs" />
+    <Compile Include="InfoBase\Metadata.cs" />
+    <Compile Include="InfoBase\Resource.cs" />
+    <Compile Include="InfoBase\RootObject.cs" />
     <Compile Include="OAuthResponse.cs" />
     <Compile Include="Organizations\PcfOrganization.cs" />
-    <Compile Include="Organizations\Metadata.cs" />
-    <Compile Include="Organizations\Resource.cs" />
     <Compile Include="Organizations\RootObject.cs" />
     <Compile Include="PcfConnection.cs" />
     <Compile Include="PcfDriveInfo.cs" />
@@ -73,8 +72,6 @@
     <Compile Include="ServiceBindings\BindingOptions.cs" />
     <Compile Include="ServiceBindings\Credentials.cs" />
     <Compile Include="ServiceBindings\PcfServiceBinding.cs" />
-    <Compile Include="ServiceBindings\Metadata.cs" />
-    <Compile Include="ServiceBindings\Resource.cs" />
     <Compile Include="ServiceBindings\RootObject.cs" />
     <Compile Include="ServiceInstance\Credentials.cs" />
     <Compile Include="ServiceInstance\PcfServiceInstance.cs" />
@@ -82,13 +79,9 @@
     <Compile Include="ServiceInstance\Metadata.cs" />
     <Compile Include="ServiceInstance\RootObject.cs" />
     <Compile Include="Services\PcfServiceInfo.cs" />
-    <Compile Include="Services\Metadata.cs" />
-    <Compile Include="Services\Resource.cs" />
     <Compile Include="Services\RootObject.cs" />
     <Compile Include="TraceTest.cs" />
-    <Compile Include="Users\Metadata.cs" />
     <Compile Include="Users\PcfUserInfo.cs" />
-    <Compile Include="Users\Resource.cs" />
     <Compile Include="Users\RootObject.cs" />
   </ItemGroup>
   <ItemGroup>

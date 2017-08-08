@@ -47,7 +47,7 @@ namespace PcfProvider.Apps
 		public bool EnableSsh { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public EnvironmentJson environmentJson { get; set; }
+		public EnvironmentJson EnvironmentJson { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string EventsUrl { get; set; }

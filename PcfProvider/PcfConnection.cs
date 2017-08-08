@@ -63,15 +63,15 @@ namespace PcfProvider
 				AllApps = JsonConvert.DeserializeObject<Apps.RootObject>(rawAppInfo);
 				AllApps.Resources.ForEach(r =>
 				{
-					r.AppInfo.AppGuid = r.Metadata.Guid;
-					allApps.Add(r.AppInfo);
+					r.Info.AppGuid = r.Metadata.Guid;
+					allApps.Add(r.Info);
 				});
 				GetAllServiceBindings(allApps);
 			}
 			else
 			{
 				Tracer.WriteLine($"==> {nameof(GetAllApps)}: Reusing contents of {nameof(AllApps)}.");
-				AllApps.Resources.ForEach(r => allApps.Add(r.AppInfo));
+				AllApps.Resources.ForEach(r => allApps.Add(r.Info));
 			}
 			return allApps;
 		}
@@ -88,7 +88,7 @@ namespace PcfProvider
 			{
 				Tracer.WriteLine($"==> {nameof(GetAllOrganizations)}: Reusing contents of {nameof(AllOrganizations)}.");
 			}
-			AllOrganizations.Resources.ForEach(r => allApps.Add(r.Organization));
+			AllOrganizations.Resources.ForEach(r => allApps.Add(r.Info));
 			return allApps;
 		}
 
@@ -104,7 +104,7 @@ namespace PcfProvider
 			{
 				Tracer.WriteLine($"==> {nameof(GetAllServices)}: Reusing contents of {nameof(AllServices)}.");
 			}
-			AllServices.Resources.ForEach(r => allServices.Add(r.ServiceInfo));
+			AllServices.Resources.ForEach(r => allServices.Add(r.Info));
 			return allServices;
 		}
 
@@ -124,7 +124,7 @@ namespace PcfProvider
 			}
 			var rawUserInfo = GetRawContainerContents(organization, org.UsersUrl);
 			var allUserInfo = JsonConvert.DeserializeObject<Users.RootObject>(rawUserInfo);
-			return allUserInfo.Resources.Select(r => r.UserInfo).ToList();
+			return allUserInfo.Resources.Select(r => r.Info).ToList();
 		}
 
 		private void GetAllServiceBindings(List<PcfAppInfo> allApps)
@@ -136,11 +136,11 @@ namespace PcfProvider
 				var serviceBindings = JsonConvert.DeserializeObject<ServiceBindings.RootObject>(rawServiceBindingInfo);
 				foreach (var serviceBinding in serviceBindings.Resources)
 				{
-					var serviceInstanceUrl = serviceBinding.ServiceBinding.service_instance_url;
+					var serviceInstanceUrl = serviceBinding.Info.service_instance_url;
 					var rawServiceInstanceInfo = GetRawContainerContents("service_instance", serviceInstanceUrl);
 					var serviceInstance = JsonConvert.DeserializeObject<ServiceInstance.RootObject>(rawServiceInstanceInfo);
-					serviceBinding.ServiceBinding.ServiceInstance = serviceInstance.ServiceInstance;
-					app.ServiceBindings.Add(serviceBinding.ServiceBinding);
+					serviceBinding.Info.ServiceInstance = serviceInstance.ServiceInstance;
+					app.ServiceBindings.Add(serviceBinding.Info);
 				}
 			}
 		}
@@ -152,24 +152,30 @@ namespace PcfProvider
 
 		private OAuthResponse GetAuthToken(string userName, string password)
 		{
-			var data = $"username={userName}&password={password}&client_id=cf&grant_type=password&response_type=token";
+			var data = IsLocal
+				? $"grant_type=password&password={password}&scope=&username={userName}"
+				: $"username={userName}&password={password}&client_id=cf&grant_type=password&response_type=token";
 			return GetOauthReponse(data);
 		}
 
 		private OAuthResponse GetOauthReponse(string data)
 		{
+			if (IsLocal)
+			{
+				var rawInfo = GetRestResponse("http://api.local.pcfdev.io", "/v2/info");
+				Tracer.WriteLine($"[info]: {rawInfo}");
+				rawInfo = GetRestResponse("https://login.local.pcfdev.io", "/login");
+				Tracer.WriteLine($"[login]: {rawInfo}");
+			}
 			var uri = IsLocal
 				? $"http://login.{Uri}/oauth/token"
 				: $"https://login.{Uri}/oauth/token";
 			var request = (HttpWebRequest)WebRequest.Create(uri);
+			request.ProtocolVersion = HttpVersion.Version11;
 			request.Headers.Add("Authorization", $"Basic {GetAuthHeader("cf")}");
 			request.Accept = "Application/json";
 			request.ContentType = "application/x-www-form-urlencoded";
 			request.Method = "POST";
-			if (IsLocal)
-			{
-				//request.Host = "system";
-			}
 			byte[] dataStream = Encoding.UTF8.GetBytes(data);
 			request.ContentLength = dataStream.Length;
 			using (var newStream = request.GetRequestStream())
@@ -198,6 +204,20 @@ namespace PcfProvider
 			using (var reader = new StreamReader(response.GetResponseStream()))
 			{
 				return Helpers.SaveJson(container, reader.ReadToEnd());
+			}
+		}
+
+		private string GetRestResponse(string uri, string restEndpoint)
+		{
+			var simpleEndpoint = restEndpoint.StartsWith("/") ? restEndpoint.Substring(1) : restEndpoint;
+			var request = (HttpWebRequest)WebRequest.Create($"{uri}/{simpleEndpoint}");
+			request.ProtocolVersion = HttpVersion.Version11;
+			request.Accept = "Application/json";
+			request.Method = "GET";
+			using (var response = request.GetResponse())
+			using (var reader = new StreamReader(response.GetResponseStream()))
+			{
+				return reader.ReadToEnd();
 			}
 		}
 

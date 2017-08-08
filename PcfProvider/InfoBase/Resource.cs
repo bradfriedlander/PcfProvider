@@ -1,14 +1,14 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace PcfProvider.Services
+namespace PcfProvider.InfoBase
 {
 	[JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-	public class Resource
+	public class Resource<T>
 	{
-		public Metadata Metadata { get; set; }
-
 		[JsonProperty("entity")]
-		public PcfServiceInfo ServiceInfo { get; set; }
+		public T Info { get; set; }
+
+		public Metadata Metadata { get; set; }
 	}
 }
