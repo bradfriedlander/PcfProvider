@@ -5,7 +5,7 @@ using Newtonsoft.Json.Serialization;
 namespace PcfProvider.Organizations
 {
 	[JsonObject("entity", NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-	public class PcfOrganization
+	public class PcfOrganizationInfo
 	{
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string AppEventsUrl { get; set; }

@@ -2,7 +2,7 @@
 
 namespace PcfProvider.Organizations
 {
-	public class RootObject : InfoBase.RootObject<PcfOrganization>
+	public class RootObject : InfoBase.RootObject<PcfOrganizationInfo>
 	{
 	}
 }

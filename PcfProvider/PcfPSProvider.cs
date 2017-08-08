@@ -7,6 +7,7 @@ using System.Management.Automation.Provider;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
+using PcfDomainInfo = PcfProvider.Domains.PcfDomainInfo;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
@@ -101,6 +102,7 @@ namespace PcfProvider
 			var count = containers.ContainerNames.Length;
 			string category = count > 0 ? containers.ContainerNames[0] : "";
 			string containerName = count > 0 ? containers.ContainerNames.Last() : "";
+			string entityName = count > 1 ? containers.ContainerNames[1] : "";
 			switch (containers.Level)
 			{
 				case PathType.Drive:
@@ -115,14 +117,14 @@ namespace PcfProvider
 					break;
 
 				case PathType.Category:
-					switch (containerName)
+					switch (category)
 					{
 						case "apps":
-							GetApps(containerName).ForEach(ai => WriteItemObject(ai, path, false));
+							GetApps(category).ForEach(ai => WriteItemObject(ai, path, false));
 							break;
 
 						case "organizations":
-							GetOrganizations(containerName).ForEach(oi =>
+							GetOrganizations(category).ForEach(oi =>
 							{
 								WriteItemObject(oi, path, true);
 								if (recurse)
@@ -133,7 +135,7 @@ namespace PcfProvider
 							break;
 
 						case "services":
-							GetServices(containerName).ForEach(si => WriteItemObject(si, path, false));
+							GetServices(category).ForEach(si => WriteItemObject(si, path, false));
 							break;
 					}
 					break;
@@ -148,11 +150,14 @@ namespace PcfProvider
 				case PathType.PcfSubCategory:
 					if (secondLevelNames.ContainsKey(category) && secondLevelNames[category].Contains(containerName))
 					{
-						var organizationName = containers.ContainerNames[1];
 						switch (containerName)
 						{
 							case "users":
-								GetUsers(organizationName).ForEach(ui => WriteItemObject(ui, path, false));
+								GetUsers(entityName).ForEach(ui => WriteItemObject(ui, path, false));
+								break;
+
+							case "domains":
+								GetDomains(entityName).ForEach(di => WriteItemObject(di, path, false));
 								break;
 						}
 					}
@@ -182,6 +187,7 @@ namespace PcfProvider
 			var count = containers.ContainerNames.Length;
 			string category = count > 0 ? containers.ContainerNames[0] : "";
 			string containerName = count > 0 ? containers.ContainerNames.Last() : "";
+			string entityName = count > 1 ? containers.ContainerNames[1] : "";
 			switch (containers.Level)
 			{
 				case PathType.Drive:
@@ -218,11 +224,14 @@ namespace PcfProvider
 				case PathType.PcfSubCategory:
 					if (secondLevelNames.ContainsKey(category) && secondLevelNames[category].Contains(containerName))
 					{
-						var organizationName = containers.ContainerNames[1];
 						switch (containerName)
 						{
 							case "users":
-								GetUsers(organizationName).ForEach(ui => WriteItemObject(ui.Name, path, false));
+								GetUsers(entityName).ForEach(ui => WriteItemObject(ui.Name, path, false));
+								break;
+
+							case "domains":
+								GetDomains(entityName).ForEach(di => WriteItemObject(di.Name, path, false));
 								break;
 						}
 					}
@@ -304,6 +313,7 @@ namespace PcfProvider
 			var count = containers.ContainerNames.Length;
 			string category = count > 0 ? containers.ContainerNames[0] : "";
 			string containerName = count > 0 ? containers.ContainerNames.Last() : "";
+			string entityName = count > 1 ? containers.ContainerNames[1] : "";
 			switch (containers.Level)
 			{
 				case PathType.Drive:
@@ -414,11 +424,10 @@ namespace PcfProvider
 						switch (subCategory)
 						{
 							case "users":
-								return LogReturn(() => GetUsers(containers.ContainerNames[1]).Any(ui => ui.Name == containerName));
+								return LogReturn(() => GetUsers(entityName).Any(ui => ui.Name == containerName));
 
 							case "domains":
-								// TODO: add support
-								return LogReturn(() => false);
+								return LogReturn(() => GetDomains(entityName).Any(di => di.Name == containerName));
 
 							case "managers":
 								// TODO: add support
@@ -615,7 +624,9 @@ namespace PcfProvider
 			return ((PathType)(containerNames.Length), containerNames);
 		}
 
-		private List<Organizations.PcfOrganization> GetOrganizations(string container) => currentDriveInfo.Connection.GetAllOrganizations(container);
+		private List<PcfDomainInfo> GetDomains(string organization) => currentDriveInfo.Connection.GetAllDomains(organization);
+
+		private List<Organizations.PcfOrganizationInfo> GetOrganizations(string container) => currentDriveInfo.Connection.GetAllOrganizations(container);
 
 		private List<PcfServiceInfo> GetServices(string container) => currentDriveInfo.Connection.GetAllServices(container);
 

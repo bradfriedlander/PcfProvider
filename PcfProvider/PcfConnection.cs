@@ -7,7 +7,8 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
-using PcfOrganization = PcfProvider.Organizations.PcfOrganization;
+using PcfDomainInfo = PcfProvider.Domains.PcfDomainInfo;
+using PcfOrganizationInfo = PcfProvider.Organizations.PcfOrganizationInfo;
 using PcfServiceBinding = PcfProvider.ServiceBindings.PcfServiceBinding;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
@@ -70,12 +71,12 @@ namespace PcfProvider
 			return AllApps.Resources.Select(r => r.Info).ToList();
 		}
 
-		public List<PcfOrganization> GetAllOrganizations(string container)
+		public List<PcfOrganizationInfo> GetAllOrganizations(string container)
 		{
-			var allApps = new List<PcfOrganization>();
+			var allApps = new List<PcfOrganizationInfo>();
 			if (Helpers.CheckNullOrEmpty(AllOrganizations))
 			{
-				AllOrganizations = GetAllInfo<PcfOrganization, Organizations.RootObject>(container);
+				AllOrganizations = GetAllInfo<PcfOrganizationInfo, Organizations.RootObject>(container);
 			}
 			else
 			{
@@ -108,6 +109,22 @@ namespace PcfProvider
 		{
 			var allInfo = GetAllInfo<TInfo, TRoot>(container, uri);
 			return allInfo.Resources.Select(r => r.Info).ToList();
+		}
+
+		internal List<PcfDomainInfo> GetAllDomains(string organization)
+		{
+			var orgs = GetAllOrganizations("organizations");
+			var org = orgs.Find(oi => oi.Name == organization);
+			if (Helpers.CheckNullOrEmpty(org))
+			{
+				return new List<PcfDomainInfo>();
+			}
+			var allDomainInfo = GetAllInfo<PcfDomainInfo, Domains.RootObject>(organization, org.DomainsUrl);
+			var allPrivateDomainInfo = GetAllInfo<PcfDomainInfo, Domains.RootObject>(organization, org.PrivateDomainsUrl);
+			return allDomainInfo.Resources
+				.Select(r => r.Info)
+				.Union(allPrivateDomainInfo.Resources.Select(r => r.Info))
+				.ToList();
 		}
 
 		internal TRoot GetAllInfo<TInfo, TRoot>(string container, string uri = "") where TRoot : InfoBase.RootObject<TInfo>

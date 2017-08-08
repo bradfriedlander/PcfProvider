@@ -58,12 +58,14 @@
     <Compile Include="Apps\PcfAppInfo.cs" />
     <Compile Include="Apps\EnvironmentJson.cs" />
     <Compile Include="Apps\RootObject.cs" />
+    <Compile Include="Domains\PcfDomainInfo.cs" />
+    <Compile Include="Domains\RootObject.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="InfoBase\Metadata.cs" />
     <Compile Include="InfoBase\Resource.cs" />
     <Compile Include="InfoBase\RootObject.cs" />
     <Compile Include="OAuthResponse.cs" />
-    <Compile Include="Organizations\PcfOrganization.cs" />
+    <Compile Include="Organizations\PcfOrganizationInfo.cs" />
     <Compile Include="Organizations\RootObject.cs" />
     <Compile Include="PcfConnection.cs" />
     <Compile Include="PcfDriveInfo.cs" />
