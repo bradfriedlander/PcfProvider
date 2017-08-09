@@ -1,31 +1,41 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.ServiceBindings
 {
 	public class PcfServiceBinding
 	{
-		public string app_guid { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string AppGuid { get; set; }
 
-		public string app_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string AppUrl { get; set; }
 
-		public BindingOptions binding_options { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public BindingOptions BindingOptions { get; set; }
 
-		public Credentials credentials { get; set; }
+		public Credentials Credentials { get; set; }
 
-		public object gateway_data { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public object GatewayData { get; set; }
 
-		public string gateway_name { get; set; }
-
-		public string service_instance_guid { get; set; }
-
-		public string service_instance_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string GatewayName { get; set; }
 
 		[JsonIgnore()]
 		public ServiceInstance.PcfServiceInstance ServiceInstance { get; set; }
 
-		public object syslog_drain_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string ServiceInstanceGuid { get; set; }
 
-		public List<object> volume_mounts { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string ServiceInstanceUrl { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public object SyslogDrainUrl { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public List<object> VolumeMounts { get; set; }
 	}
 }

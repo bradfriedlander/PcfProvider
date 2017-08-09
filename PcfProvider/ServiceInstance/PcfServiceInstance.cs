@@ -1,39 +1,53 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.ServiceInstance
 {
 	public class PcfServiceInstance
 	{
-		public Credentials credentials { get; set; }
+		public Credentials Credentials { get; set; }
 
-		public string dashboard_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string DashboardUrl { get; set; }
 
-		public object gateway_data { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public object GatewayData { get; set; }
 
-		public LastOperation last_operation { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public LastOperation lastOperation { get; set; }
 
-		public string name { get; set; }
+		public string Name { get; set; }
 
-		public string routes_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string RoutesUrl { get; set; }
 
-		public string service_bindings_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string ServiceBindingsUrl { get; set; }
 
-		public string service_guid { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string ServiceGuid { get; set; }
 
-		public string service_keys_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string ServiceKeysUrl { get; set; }
 
-		public string service_plan_guid { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string ServicePlanGuid { get; set; }
 
-		public string service_plan_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string ServicePlanUrl { get; set; }
 
-		public string service_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string ServiceUrl { get; set; }
 
-		public string space_guid { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string SpaceGuid { get; set; }
 
-		public string space_url { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string SpaceUrl { get; set; }
 
-		public List<object> tags { get; set; }
+		public List<object> Tags { get; set; }
 
-		public string type { get; set; }
+		public string Type { get; set; }
 	}
 }

@@ -153,7 +153,7 @@ namespace PcfProvider
 				var serviceBindings = GetAllInfo<PcfServiceBinding, ServiceBindings.RootObject>("service_bindings", serviceBindingUrl);
 				foreach (var serviceBinding in serviceBindings.Resources)
 				{
-					var serviceInstanceUrl = serviceBinding.Info.service_instance_url;
+					var serviceInstanceUrl = serviceBinding.Info.ServiceInstanceUrl;
 					var rawServiceInstanceInfo = GetRawContainerContents("service_instance", serviceInstanceUrl);
 					var serviceInstance = JsonConvert.DeserializeObject<ServiceInstance.RootObject>(rawServiceInstanceInfo);
 					serviceBinding.Info.ServiceInstance = serviceInstance.ServiceInstance;
