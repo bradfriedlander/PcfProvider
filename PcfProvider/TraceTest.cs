@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace PcfProvider
 {
@@ -20,13 +22,18 @@ namespace PcfProvider
 
 		public void SetActivated(bool activated) => Activated = activated;
 
-		public void WriteLine(string message, string area = null, string application = null, bool isBlankBefore=false)
+		public void WriteLine(string message, string area = null, string application = null, bool isBlankBefore = false)
 		{
 			if (Activated)
 			{
 				var blankBefore = isBlankBefore ? "\r\n" : string.Empty;
 				Trace.WriteLine($"{blankBefore}[{DateTime.Now.ToString("HH:mm:ss.fff")}] {application ?? Application}({area ?? Area}): {message}");
 			}
+		}
+
+		public void WriteLineIndent(string message, [CallerMemberName]string callerName = "")
+		{
+			WriteLine($"==> {callerName}: {message}");
 		}
 	}
 }

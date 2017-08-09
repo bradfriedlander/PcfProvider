@@ -15,7 +15,7 @@ namespace PcfProvider.ServiceInstance
 		public object GatewayData { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public LastOperation lastOperation { get; set; }
+		public LastOperation LastOperation { get; set; }
 
 		public string Name { get; set; }
 

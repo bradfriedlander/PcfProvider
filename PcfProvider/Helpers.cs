@@ -30,10 +30,11 @@ namespace PcfProvider
 		/// </summary>
 		/// <param name="label">This is the label for the file.</param>
 		/// <param name="serializedJson">This is the serialized Json string to be saved.</param>
+		/// <param name="allowSave">If <c>true</c>, then <paramref name="serializedJson" /> is saved; otherwise, it is not saved.</param>
 		/// <returns>This is always the unmodified <paramref name="serializedJson" />. This is done to support fluent constructs.</returns>
-		public static string SaveJson(string label, string serializedJson)
+		public static string SaveJson(string label, string serializedJson, bool allowSave = false)
 		{
-			if (Debugger.IsAttached)
+			if (allowSave && Debugger.IsAttached)
 			{
 				var filename = $"{DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss")}_{label}.json";
 				if (File.Exists(filename))

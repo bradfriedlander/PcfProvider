@@ -1,10 +1,19 @@
-﻿namespace PcfProvider.ServiceInstance
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+namespace PcfProvider.ServiceInstance
 {
+	[JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
 	public class Metadata
 	{
-		public string guid { get; set; }
-		public string url { get; set; }
-		public string created_at { get; set; }
-		public string updated_at { get; set; }
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string CreatedAt { get; set; }
+
+		public string Guid { get; set; }
+
+		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+		public string UpdatedAt { get; set; }
+
+		public string Url { get; set; }
 	}
 }

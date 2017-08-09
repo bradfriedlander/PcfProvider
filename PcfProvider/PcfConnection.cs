@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
 using PcfDomainInfo = PcfProvider.Domains.PcfDomainInfo;
 using PcfOrganizationInfo = PcfProvider.Organizations.PcfOrganizationInfo;
+using PcfRouteInfo = PcfProvider.Routes.PcfRouteInfo;
 using PcfServiceBinding = PcfProvider.ServiceBindings.PcfServiceBinding;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
@@ -42,6 +43,8 @@ namespace PcfProvider
 
 		public Organizations.RootObject AllOrganizations { get; private set; }
 
+		public Routes.RootObject AllRoutes { get; private set; }
+
 		public Services.RootObject AllServices { get; private set; }
 
 		public PSCredential Credential { get; }
@@ -66,35 +69,46 @@ namespace PcfProvider
 			}
 			else
 			{
-				Tracer.WriteLine($"==> {nameof(GetAllApps)}: Reusing contents of {nameof(AllApps)}.");
+				Tracer.WriteLineIndent($"Reusing contents of {nameof(AllApps)}.");
 			}
 			return AllApps.Resources.Select(r => r.Info).ToList();
 		}
 
 		public List<PcfOrganizationInfo> GetAllOrganizations(string container)
 		{
-			var allApps = new List<PcfOrganizationInfo>();
 			if (Helpers.CheckNullOrEmpty(AllOrganizations))
 			{
 				AllOrganizations = GetAllInfo<PcfOrganizationInfo, Organizations.RootObject>(container);
 			}
 			else
 			{
-				Tracer.WriteLine($"==> {nameof(GetAllOrganizations)}: Reusing contents of {nameof(AllOrganizations)}.");
+				Tracer.WriteLineIndent($"Reusing contents of {nameof(AllOrganizations)}.");
 			}
 			return AllOrganizations.Resources.Select(r => r.Info).ToList();
 		}
 
+		public List<PcfRouteInfo> GetAllRoutes(string container)
+		{
+			if (Helpers.CheckNullOrEmpty(AllRoutes))
+			{
+				AllRoutes = GetAllInfo<PcfRouteInfo, Routes.RootObject>(container);
+			}
+			else
+			{
+				Tracer.WriteLineIndent($"Reusing contents of {nameof(AllRoutes)}.");
+			}
+			return AllRoutes.Resources.Select(r => r.Info).ToList();
+		}
+
 		public List<PcfServiceInfo> GetAllServices(string container)
 		{
-			var allServices = new List<PcfServiceInfo>();
 			if (Helpers.CheckNullOrEmpty(AllOrganizations))
 			{
 				AllServices = GetAllInfo<PcfServiceInfo, Services.RootObject>(container);
 			}
 			else
 			{
-				Tracer.WriteLine($"==> {nameof(GetAllServices)}: Reusing contents of {nameof(AllServices)}.");
+				Tracer.WriteLineIndent($"Reusing contents of {nameof(AllServices)}.");
 			}
 			return AllServices.Resources.Select(r => r.Info).ToList();
 		}
@@ -177,16 +191,11 @@ namespace PcfProvider
 
 		private OAuthResponse GetOauthReponse(string data)
 		{
-			if (IsLocal)
-			{
-				var rawInfo = GetRestResponse("http://api.local.pcfdev.io", "/v2/info");
-				Tracer.WriteLine($"[info]: {rawInfo}");
-				rawInfo = GetRestResponse("https://login.local.pcfdev.io", "/login");
-				Tracer.WriteLine($"[login]: {rawInfo}");
-			}
+			var pcfInfo = JsonConvert.DeserializeObject<Info.PcfInfo>(GetRestResponse($"http://api.{Uri}", "/v2/info"));
+			var loginInfo = JsonConvert.DeserializeObject<LoginInfo.PcfLoginInfo>(GetRestResponse(pcfInfo.AuthorizationEndpoint, "/login"));
 			var uri = IsLocal
 				? $"http://login.{Uri}/oauth/token"
-				: $"https://login.{Uri}/oauth/token";
+				: $"{loginInfo.Links.Login}/oauth/token";
 			var request = (HttpWebRequest)WebRequest.Create(uri);
 			request.ProtocolVersion = HttpVersion.Version11;
 			request.Headers.Add("Authorization", $"Basic {GetAuthHeader("cf")}");

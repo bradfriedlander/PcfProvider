@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
 using PcfDomainInfo = PcfProvider.Domains.PcfDomainInfo;
+using PcfRouteInfo = PcfProvider.Routes.PcfRouteInfo;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
@@ -34,12 +35,27 @@ namespace PcfProvider
 			PcfSubEntity
 		}
 
-		private static readonly string[] firstLevelNames = new string[] { "apps", "organizations", "routes", "services" };
+		private const string appsCategory = "apps";
+		private const string domainsSubcategory = "domains";
+		private const string managersSubcategory = "managers";
+		private const string orgsCategory = "organizations";
+		private const string routesCategory = "routes";
+		private const string serviceBindingsSubcategory = "serviceBindings";
+		private const string servicesCategory = "services";
+		private const string usersSubcategory = "users";
 
-		private static readonly Dictionary<string, string[]> secondLevelNames = new Dictionary<string, string[]>
+		private static readonly string[] categoryNames = new string[]
 		{
-			["organizations"] = new string[] { "domains", "managers", "users" },
-			["apps"] = new string[] { "services" }
+			appsCategory,
+			orgsCategory,
+			routesCategory,
+			servicesCategory
+		};
+
+		private static readonly Dictionary<string, string[]> subCategoryNames = new Dictionary<string, string[]>
+		{
+			[orgsCategory] = new string[] { domainsSubcategory, managersSubcategory, usersSubcategory },
+			[appsCategory] = new string[] { serviceBindingsSubcategory }
 		};
 
 		private static PcfDriveInfo currentDriveInfo;
@@ -103,7 +119,7 @@ namespace PcfProvider
 			switch (pathParts.level)
 			{
 				case PathType.Drive:
-					foreach (var name in firstLevelNames)
+					foreach (var name in categoryNames)
 					{
 						WriteItemObject(FirstLevelObject(name), path, true);
 						if (recurse)
@@ -116,7 +132,7 @@ namespace PcfProvider
 				case PathType.Category:
 					switch (pathParts.category)
 					{
-						case "apps":
+						case appsCategory:
 							GetApps(pathParts.category).ForEach(ai =>
 							{
 								WriteItemObject(ai, path, true);
@@ -127,7 +143,7 @@ namespace PcfProvider
 							});
 							break;
 
-						case "organizations":
+						case orgsCategory:
 							GetOrganizations(pathParts.category).ForEach(oi =>
 							{
 								WriteItemObject(oi, path, true);
@@ -138,7 +154,18 @@ namespace PcfProvider
 							});
 							break;
 
-						case "services":
+						case routesCategory:
+							GetRoutes(pathParts.category).ForEach(ri =>
+							{
+								WriteItemObject(ri, path, true);
+								if (recurse)
+								{
+									GetChildItems(MakeChildPathname(path, ri.Name), recurse);
+								}
+							});
+							break;
+
+						case servicesCategory:
 							GetServices(pathParts.category).ForEach(si =>
 							{
 								WriteItemObject(si, path, true);
@@ -152,9 +179,9 @@ namespace PcfProvider
 					break;
 
 				case PathType.PcfEntity:
-					if (secondLevelNames.ContainsKey(pathParts.category))
+					if (subCategoryNames.ContainsKey(pathParts.category))
 					{
-						secondLevelNames[pathParts.category].ToList().ForEach(c =>
+						subCategoryNames[pathParts.category].ToList().ForEach(c =>
 						{
 							WriteItemObject(c, path, true);
 							if (recurse)
@@ -166,11 +193,11 @@ namespace PcfProvider
 					break;
 
 				case PathType.PcfSubCategory:
-					if (secondLevelNames.ContainsKey(pathParts.category) && secondLevelNames[pathParts.category].Contains(pathParts.subCategory))
+					if (subCategoryNames.ContainsKey(pathParts.category) && subCategoryNames[pathParts.category].Contains(pathParts.subCategory))
 					{
 						switch (pathParts.subCategory)
 						{
-							case "users":
+							case usersSubcategory:
 								GetUsers(pathParts.entityName).ForEach(ui =>
 								{
 									WriteItemObject(ui, path, false);
@@ -181,7 +208,7 @@ namespace PcfProvider
 								});
 								break;
 
-							case "domains":
+							case domainsSubcategory:
 								GetDomains(pathParts.entityName).ForEach(di =>
 								{
 									WriteItemObject(di, path, false);
@@ -192,7 +219,7 @@ namespace PcfProvider
 								});
 								break;
 
-							case "services":
+							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
@@ -234,7 +261,7 @@ namespace PcfProvider
 			switch (pathParts.level)
 			{
 				case PathType.Drive:
-					foreach (var name in firstLevelNames)
+					foreach (var name in categoryNames)
 					{
 						WriteItemObject(FirstLevelObject(name), path, true);
 					}
@@ -243,41 +270,45 @@ namespace PcfProvider
 				case PathType.Category:
 					switch (pathParts.category)
 					{
-						case "apps":
+						case appsCategory:
 							GetApps(pathParts.category).ForEach(ai => WriteItemObject(ai.Name, path, false));
 							break;
 
-						case "organizations":
+						case orgsCategory:
 							GetOrganizations(pathParts.category).ForEach(oi => WriteItemObject(oi.Name, path, true));
 							break;
 
-						case "services":
+						case routesCategory:
+							GetRoutes(pathParts.category).Where(ri => ri.Name == pathParts.entityName).ToList().ForEach(ri => WriteItemObject(ri.Name, path, false));
+							break;
+
+						case servicesCategory:
 							GetServices(pathParts.category).ForEach(si => WriteItemObject(si.Name, path, false));
 							break;
 					}
 					break;
 
 				case PathType.PcfEntity:
-					if (secondLevelNames.ContainsKey(pathParts.category))
+					if (subCategoryNames.ContainsKey(pathParts.category))
 					{
-						secondLevelNames[pathParts.category].ToList().ForEach(ci => WriteItemObject(ci, path, true));
+						subCategoryNames[pathParts.category].ToList().ForEach(ci => WriteItemObject(ci, path, true));
 					}
 					break;
 
 				case PathType.PcfSubCategory:
-					if (secondLevelNames.ContainsKey(pathParts.category) && secondLevelNames[pathParts.category].Contains(pathParts.subCategory))
+					if (subCategoryNames.ContainsKey(pathParts.category) && subCategoryNames[pathParts.category].Contains(pathParts.subCategory))
 					{
 						switch (pathParts.subCategory)
 						{
-							case "users":
+							case usersSubcategory:
 								GetUsers(pathParts.entityName).ForEach(ui => WriteItemObject(ui.Name, path, false));
 								break;
 
-							case "domains":
+							case domainsSubcategory:
 								GetDomains(pathParts.entityName).ForEach(di => WriteItemObject(di.Name, path, false));
 								break;
 
-							case "services":
+							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
@@ -314,41 +345,45 @@ namespace PcfProvider
 				case PathType.PcfEntity:
 					switch (pathParts.category)
 					{
-						case "apps":
+						case appsCategory:
 							GetApps(pathParts.category).Where(ai => ai.Name == pathParts.entityName).ToList().ForEach(ai => WriteItemObject(ai, path, false));
 							break;
 
-						case "organizations":
+						case orgsCategory:
 							GetOrganizations(pathParts.category).Where(oi => oi.Name == pathParts.entityName).ToList().ForEach(oi => WriteItemObject(oi, path, true));
 							break;
 
-						case "services":
+						case routesCategory:
+							GetRoutes(pathParts.category).Where(ri => ri.Name == pathParts.entityName).ToList().ForEach(ri => WriteItemObject(ri, path, false));
+							break;
+
+						case servicesCategory:
 							GetServices(pathParts.category).Where(si => si.Name == pathParts.entityName).ToList().ForEach(si => WriteItemObject(si, path, false));
 							break;
 					}
 					break;
 
 				case PathType.PcfSubCategory:
-					if (secondLevelNames.ContainsKey(pathParts.category) && secondLevelNames[pathParts.category].Contains(pathParts.containerName))
+					if (subCategoryNames.ContainsKey(pathParts.category) && subCategoryNames[pathParts.category].Contains(pathParts.containerName))
 					{
 						WriteItemObject(pathParts.containerName, path, true);
 					}
 					break;
 
 				case PathType.PcfSubEntity:
-					if (secondLevelNames.ContainsKey(pathParts.category) && secondLevelNames[pathParts.category].Contains(pathParts.subCategory))
+					if (subCategoryNames.ContainsKey(pathParts.category) && subCategoryNames[pathParts.category].Contains(pathParts.subCategory))
 					{
 						switch (pathParts.subCategory)
 						{
-							case "users":
+							case usersSubcategory:
 								GetUsers(pathParts.entityName).FindAll(ui => ui.Name == pathParts.subEntity).ForEach(ui => WriteItemObject(ui, path, false));
 								break;
 
-							case "domains":
+							case domainsSubcategory:
 								GetDomains(pathParts.entityName).FindAll(di => di.Name == pathParts.subEntity).ForEach(di => WriteItemObject(di, path, false));
 								break;
 
-							case "services":
+							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
@@ -380,13 +415,13 @@ namespace PcfProvider
 					return LogReturn(() => true);
 
 				case PathType.PcfEntity:
-					return LogReturn(() => secondLevelNames.ContainsKey(category));
+					return LogReturn(() => subCategoryNames.ContainsKey(category));
 
 				case PathType.PcfSubCategory:
 					var thirdLevel = containers.ContainerNames.Last();
-					if (secondLevelNames.ContainsKey(category))
+					if (subCategoryNames.ContainsKey(category))
 					{
-						return LogReturn(() => secondLevelNames[category].Contains(thirdLevel));
+						return LogReturn(() => subCategoryNames[category].Contains(thirdLevel));
 					}
 					return LogReturn(() => false);
 
@@ -418,7 +453,7 @@ namespace PcfProvider
 
 				case PathType.PcfEntity:
 					var category = containers.ContainerNames[0];
-					return LogReturn(() => secondLevelNames.ContainsKey(category));
+					return LogReturn(() => subCategoryNames.ContainsKey(category));
 
 				case PathType.PcfSubCategory:
 					return LogReturn(() => true);
@@ -456,36 +491,39 @@ namespace PcfProvider
 				case PathType.PcfEntity:
 					switch (pathParts.category)
 					{
-						case "apps":
+						case appsCategory:
 							return LogReturn(() => GetApps(pathParts.category).Any(ai => pathParts.entityName == ai.Name));
 
-						case "services":
-							return LogReturn(() => GetServices(pathParts.category).Any(si => pathParts.entityName == si.Name));
-
-						case "organizations":
+						case orgsCategory:
 							return LogReturn(() => GetOrganizations(pathParts.category).Any(oi => pathParts.entityName == oi.Name));
+
+						case routesCategory:
+							return LogReturn(() => GetRoutes(pathParts.category).Any(ri => pathParts.entityName == ri.Name));
+
+						case servicesCategory:
+							return LogReturn(() => GetServices(pathParts.category).Any(si => pathParts.entityName == si.Name));
 					}
 					break;
 
 				case PathType.PcfSubCategory:
-					return LogReturn(() => secondLevelNames.ContainsKey(pathParts.category));
+					return LogReturn(() => subCategoryNames.ContainsKey(pathParts.category));
 
 				case PathType.PcfSubEntity:
-					if (secondLevelNames.ContainsKey(pathParts.category) && secondLevelNames[pathParts.category].Contains(pathParts.subCategory))
+					if (subCategoryNames.ContainsKey(pathParts.category) && subCategoryNames[pathParts.category].Contains(pathParts.subCategory))
 					{
 						switch (pathParts.subCategory)
 						{
-							case "users":
+							case usersSubcategory:
 								return LogReturn(() => GetUsers(pathParts.entityName).Any(ui => ui.Name == pathParts.subEntity));
 
-							case "domains":
+							case domainsSubcategory:
 								return LogReturn(() => GetDomains(pathParts.entityName).Any(di => di.Name == pathParts.subEntity));
 
-							case "managers":
+							case managersSubcategory:
 								// TODO: add support
 								return LogReturn(() => false);
 
-							case "services":
+							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance));
@@ -660,11 +698,11 @@ namespace PcfProvider
 		{
 			if (currentDriveInfo.PathIsDrive(path))
 			{
-				return firstLevelNames;
+				return categoryNames;
 			}
 			var regexString = Regex.Escape(path).Replace(@"\\", "").Replace("*", ".*");
 			var regex = new Regex($"^{regexString}$");
-			return firstLevelNames.Where(fln => regex.IsMatch(fln)).Select(fln => fln).ToArray();
+			return categoryNames.Where(fln => regex.IsMatch(fln)).Select(fln => fln).ToArray();
 		}
 
 		private static string MakeChildPathname(string parentPath, string childName)
@@ -704,6 +742,8 @@ namespace PcfProvider
 			return (containers.ContainerNames, level, count, category, containerName, entityName, subCategory, subEntity);
 		}
 
+		private List<PcfRouteInfo> GetRoutes(string container) => currentDriveInfo.Connection.GetAllRoutes(container);
+
 		private List<PcfServiceInfo> GetServices(string container) => currentDriveInfo.Connection.GetAllServices(container);
 
 		private List<PcfUserInfo> GetUsers(string organization) => currentDriveInfo.Connection.GetAllUsers(organization);
@@ -713,7 +753,7 @@ namespace PcfProvider
 			T returnValue = function();
 			if (isLogItems)
 			{
-				_trace.WriteLine($"[{callerName}] returned '{returnValue}'");
+				_trace.WriteLineIndent($"Returned '{returnValue}'", callerName);
 			}
 			return returnValue;
 		}

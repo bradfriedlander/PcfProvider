@@ -64,6 +64,12 @@
     <Compile Include="InfoBase\Metadata.cs" />
     <Compile Include="InfoBase\Resource.cs" />
     <Compile Include="InfoBase\RootObject.cs" />
+    <Compile Include="Info\PcfInfo.cs" />
+    <Compile Include="LoginInfo\App.cs" />
+    <Compile Include="LoginInfo\IdpDefinitions.cs" />
+    <Compile Include="LoginInfo\Links.cs" />
+    <Compile Include="LoginInfo\Prompts.cs" />
+    <Compile Include="LoginInfo\PcfLoginInfo.cs" />
     <Compile Include="OAuthResponse.cs" />
     <Compile Include="Organizations\PcfOrganizationInfo.cs" />
     <Compile Include="Organizations\RootObject.cs" />
@@ -71,6 +77,8 @@
     <Compile Include="PcfDriveInfo.cs" />
     <Compile Include="PcfPSProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Routes\PcfRouteInfo.cs" />
+    <Compile Include="Routes\RootObject.cs" />
     <Compile Include="ServiceBindings\BindingOptions.cs" />
     <Compile Include="ServiceBindings\Credentials.cs" />
     <Compile Include="ServiceBindings\PcfServiceBinding.cs" />
@@ -98,6 +106,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
