@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
 using PcfDomainInfo = PcfProvider.Domains.PcfDomainInfo;
+using PcfManagerInfo = PcfProvider.Managers.PcfManagerInfo;
 using PcfRouteInfo = PcfProvider.Routes.PcfRouteInfo;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
@@ -197,17 +198,6 @@ namespace PcfProvider
 					{
 						switch (pathParts.subCategory)
 						{
-							case usersSubcategory:
-								GetUsers(pathParts.entityName).ForEach(ui =>
-								{
-									WriteItemObject(ui, path, false);
-									if (recurse)
-									{
-										GetChildItems(MakeChildPathname(path, ui.Name), recurse);
-									}
-								});
-								break;
-
 							case domainsSubcategory:
 								GetDomains(pathParts.entityName).ForEach(di =>
 								{
@@ -215,6 +205,17 @@ namespace PcfProvider
 									if (recurse)
 									{
 										GetChildItems(MakeChildPathname(path, di.Name), recurse);
+									}
+								});
+								break;
+
+							case managersSubcategory:
+								GetManagers(pathParts.entityName).ForEach(mi =>
+								{
+									WriteItemObject(mi, path, false);
+									if (recurse)
+									{
+										GetChildItems(MakeChildPathname(path, mi.Name), recurse);
 									}
 								});
 								break;
@@ -232,6 +233,17 @@ namespace PcfProvider
 										GetChildItems(MakeChildPathname(path, si.Name), recurse);
 									}
 								}));
+								break;
+
+							case usersSubcategory:
+								GetUsers(pathParts.entityName).ForEach(ui =>
+								{
+									WriteItemObject(ui, path, false);
+									if (recurse)
+									{
+										GetChildItems(MakeChildPathname(path, ui.Name), recurse);
+									}
+								});
 								break;
 						}
 					}
@@ -300,12 +312,12 @@ namespace PcfProvider
 					{
 						switch (pathParts.subCategory)
 						{
-							case usersSubcategory:
-								GetUsers(pathParts.entityName).ForEach(ui => WriteItemObject(ui.Name, path, false));
-								break;
-
 							case domainsSubcategory:
 								GetDomains(pathParts.entityName).ForEach(di => WriteItemObject(di.Name, path, false));
+								break;
+
+							case managersSubcategory:
+								GetManagers(pathParts.entityName).ForEach(mi => WriteItemObject(mi.Name, path, false));
 								break;
 
 							case serviceBindingsSubcategory:
@@ -314,6 +326,10 @@ namespace PcfProvider
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
 									.ToList();
 								services.ForEach(s => s.ToList().ForEach(si => WriteItemObject(si.Name, path, false)));
+								break;
+
+							case usersSubcategory:
+								GetUsers(pathParts.entityName).ForEach(ui => WriteItemObject(ui.Name, path, false));
 								break;
 						}
 					}
@@ -375,12 +391,12 @@ namespace PcfProvider
 					{
 						switch (pathParts.subCategory)
 						{
-							case usersSubcategory:
-								GetUsers(pathParts.entityName).FindAll(ui => ui.Name == pathParts.subEntity).ForEach(ui => WriteItemObject(ui, path, false));
-								break;
-
 							case domainsSubcategory:
 								GetDomains(pathParts.entityName).FindAll(di => di.Name == pathParts.subEntity).ForEach(di => WriteItemObject(di, path, false));
+								break;
+
+							case managersSubcategory:
+								GetManagers(pathParts.entityName).FindAll(mi => mi.Name == pathParts.subEntity).ForEach(mi => WriteItemObject(mi, path, false));
 								break;
 
 							case serviceBindingsSubcategory:
@@ -389,6 +405,10 @@ namespace PcfProvider
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
 									.ToList();
 								services.ForEach(s => s.ToList().FindAll(si => si.Name == pathParts.subEntity).ForEach(si => WriteItemObject(si, path, false)));
+								break;
+
+							case usersSubcategory:
+								GetUsers(pathParts.entityName).FindAll(ui => ui.Name == pathParts.subEntity).ForEach(ui => WriteItemObject(ui, path, false));
 								break;
 						}
 					}
@@ -513,21 +533,20 @@ namespace PcfProvider
 					{
 						switch (pathParts.subCategory)
 						{
-							case usersSubcategory:
-								return LogReturn(() => GetUsers(pathParts.entityName).Any(ui => ui.Name == pathParts.subEntity));
-
 							case domainsSubcategory:
 								return LogReturn(() => GetDomains(pathParts.entityName).Any(di => di.Name == pathParts.subEntity));
 
 							case managersSubcategory:
-								// TODO: add support
-								return LogReturn(() => false);
+								return LogReturn(() => GetManagers(pathParts.entityName).Any(mi => mi.Name == pathParts.subEntity));
 
 							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance));
 								return LogReturn(() => services.Any(s => s.Any(si => si.Name == pathParts.subEntity)));
+
+							case usersSubcategory:
+								return LogReturn(() => GetUsers(pathParts.entityName).Any(ui => ui.Name == pathParts.subEntity));
 						}
 					}
 					return LogReturn(() => false);
@@ -707,7 +726,7 @@ namespace PcfProvider
 
 		private static string MakeChildPathname(string parentPath, string childName)
 		{
-			return $"{parentPath}{PcfDriveInfo.PathSeparator}{childName}";
+			return $"{parentPath.TrimEnd(new[] { '\\' })}{PcfDriveInfo.PathSeparator}{childName}";
 		}
 
 		private string FirstLevelObject(string value) => value;
@@ -726,6 +745,8 @@ namespace PcfProvider
 		}
 
 		private List<PcfDomainInfo> GetDomains(string organization) => currentDriveInfo.Connection.GetAllDomains(organization);
+
+		private List<PcfManagerInfo> GetManagers(string organization) => currentDriveInfo.Connection.GetAllManagers(organization);
 
 		private List<Organizations.PcfOrganizationInfo> GetOrganizations(string container) => currentDriveInfo.Connection.GetAllOrganizations(container);
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -13,7 +14,7 @@ namespace PcfProvider.Apps
 		}
 
 		[JsonIgnore()]
-		public string AppGuid { get; set; }
+		public Guid AppGuid { get; set; }
 
 		public string Buildpack { get; set; }
 
@@ -41,7 +42,7 @@ namespace PcfProvider.Apps
 		public DockerCredentials DockerCredentials { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public object DockerImage { get; set; }
+		public string DockerImage { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public bool EnableSsh { get; set; }
@@ -53,10 +54,10 @@ namespace PcfProvider.Apps
 		public string EventsUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public object HealthCheckHttpEndpoint { get; set; }
+		public string HealthCheckHttpEndpoint { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public object HealthCheckTimeout { get; set; }
+		public int? HealthCheckTimeout { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string HealthCheckType { get; set; }

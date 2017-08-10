@@ -8,12 +8,12 @@ namespace PcfProvider.InfoBase
 	public class Metadata
 	{
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string CreatedAt { get; set; }
+		public DateTime CreatedAt { get; set; }
 
-		public string Guid { get; set; }
+		public Guid Guid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string UpdatedAt { get; set; }
+		public DateTime? UpdatedAt { get; set; }
 
 		public string Url { get; set; }
 	}

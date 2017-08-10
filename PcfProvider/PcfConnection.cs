@@ -8,6 +8,7 @@ using System.Text;
 using Newtonsoft.Json;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
 using PcfDomainInfo = PcfProvider.Domains.PcfDomainInfo;
+using PcfManagerInfo = PcfProvider.Managers.PcfManagerInfo;
 using PcfOrganizationInfo = PcfProvider.Organizations.PcfOrganizationInfo;
 using PcfRouteInfo = PcfProvider.Routes.PcfRouteInfo;
 using PcfServiceBinding = PcfProvider.ServiceBindings.PcfServiceBinding;
@@ -145,6 +146,18 @@ namespace PcfProvider
 		{
 			var rawInfo = GetRawContainerContents(container, uri);
 			return JsonConvert.DeserializeObject<TRoot>(rawInfo);
+		}
+
+		internal List<PcfManagerInfo> GetAllManagers(string organization)
+		{
+			var orgs = GetAllOrganizations("organizations");
+			var org = orgs.Find(oi => oi.Name == organization);
+			if (Helpers.CheckNullOrEmpty(org))
+			{
+				return new List<PcfManagerInfo>();
+			}
+			var allManagerInfo = GetAllInfo<PcfManagerInfo, Managers.RootObject>(organization, org.ManagersUrl);
+			return allManagerInfo.Resources.Select(r => r.Info).ToList();
 		}
 
 		internal List<PcfUserInfo> GetAllUsers(string organization)

@@ -10,7 +10,7 @@ namespace PcfProvider.Routes
 		public string AppsUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string DomainGuid { get; set; }
+		public Guid DomainGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string DomainUrl { get; set; }
@@ -26,13 +26,13 @@ namespace PcfProvider.Routes
 		public string RouteMappingsUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string ServiceInstanceGuid { get; set; }
+		public Guid ServiceInstanceGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string ServiceInstanceUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string SpaceGuid { get; set; }
+		public Guid SpaceGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string SpaceUrl { get; set; }

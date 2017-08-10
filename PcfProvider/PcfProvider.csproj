@@ -70,6 +70,8 @@
     <Compile Include="LoginInfo\Links.cs" />
     <Compile Include="LoginInfo\Prompts.cs" />
     <Compile Include="LoginInfo\PcfLoginInfo.cs" />
+    <Compile Include="Managers\PcfManagerInfo.cs" />
+    <Compile Include="Managers\RootObject.cs" />
     <Compile Include="OAuthResponse.cs" />
     <Compile Include="Organizations\PcfOrganizationInfo.cs" />
     <Compile Include="Organizations\RootObject.cs" />

@@ -13,10 +13,10 @@ namespace PcfProvider.InfoBase
 	public class RootObject<T>
 	{
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public object NextUrl { get; set; }
+		public string NextUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public object PrevUrl { get; set; }
+		public string PrevUrl { get; set; }
 
 		public List<Resource<T>> Resources { get; set; }
 

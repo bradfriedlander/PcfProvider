@@ -2,12 +2,18 @@
 {
 	public class Credentials
 	{
-		public string jdbcUrl { get; set; }
-		public string uri { get; set; }
-		public string name { get; set; }
-		public string hostname { get; set; }
-		public string port { get; set; }
-		public string username { get; set; }
-		public string password { get; set; }
+		public string Hostname { get; set; }
+
+		public string JdbcUrl { get; set; }
+
+		public string Name { get; set; }
+
+		public string Password { get; set; }
+
+		public string Port { get; set; }
+
+		public string Uri { get; set; }
+
+		public string Username { get; set; }
 	}
 }
