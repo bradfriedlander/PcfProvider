@@ -12,10 +12,21 @@ Import-Module -Name .\PcfProvider.dll
 New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Get-Content 'user.txt') -Password (Get-Content 'password.txt')
 ```
 ## Drive Structure
-This provider uses a folder strcuture to map Pivotal Clound Foundry artifcats into PowerShell objects.
-* Level 1 is the category
-** apps
-** 
+This provider uses a folder structure to map Pivotal Cloud Foundry artifacts into PowerShell objects.
+* Level 1 is the category.
+* Level 2 is an entity under the category. All categories have level 2 items.
+* Level 3 is the set of subcategories for an entity. The supported folders depend on the category.
+* Level 4 is an entity for a subcategory.
+
+Categories and subcategories
+    * apps
+	    * serviceBindings
+    * routes
+    * organizations
+	    * domains
+		* managers
+		* users
+    * services
 
 ## License
 [This is an open source project using the MIT license.](docs/LICENSE.md)
