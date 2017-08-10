@@ -11,5 +11,11 @@ Issue the following PowerShell commands.
 Import-Module -Name .\PcfProvider.dll
 New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Get-Content 'user.txt') -Password (Get-Content 'password.txt')
 ```
+## Drive Structure
+This provider uses a folder strcuture to map Pivotal Clound Foundry artifcats into PowerShell objects.
+* Level 1 is the category
+** apps
+** 
+
 ## License
-[This is an open source project using the MIT license.](./LICENSE.md)
+[This is an open source project using the MIT license.](docs/LICENSE.md)
