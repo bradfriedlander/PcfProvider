@@ -72,7 +72,7 @@ namespace PcfProvider.Apps
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string PackageUpdatedAt { get; set; }
 
-		public List<int> ports { get; set; }
+		public List<int> Ports { get; set; }
 
 		public bool Production { get; set; }
 

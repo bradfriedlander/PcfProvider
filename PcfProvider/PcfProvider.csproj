@@ -101,12 +101,15 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="PcfPSProvider.psd1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="user.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />
+    <Content Include="PcfProvider.format.ps1xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="TestPcf.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
