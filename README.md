@@ -18,15 +18,19 @@ This provider uses a folder structure to map Pivotal Cloud Foundry artifacts int
 * Level 3 is the set of subcategories for an entity. The supported folders depend on the category.
 * Level 4 is an entity for a subcategory.
 
-Categories and subcategories
-    * apps
-	    * serviceBindings
-    * routes
-    * organizations
-	    * domains
-		* managers
-		* users
-    * services
+### Categories and Subcategories
+* apps
+    * Application Entity
+        * serviceBindings
+* routes
+    * Route Entity
+* organizations
+    * Organization Entity
+        * domains
+        * managers
+        * users
+* services
+    * Service Entity
 
 ## License
 [This is an open source project using the MIT license.](docs/LICENSE.md)
