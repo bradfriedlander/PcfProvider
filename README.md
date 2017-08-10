@@ -11,3 +11,5 @@ Issue the following PowerShell commands.
 Import-Module -Name .\PcfProvider.dll
 New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Get-Content 'user.txt') -Password (Get-Content 'password.txt')
 ```
+## License
+[This is an open source project using the MIT license.](.\LICENSE.md)
