@@ -26,9 +26,9 @@ This provider uses a folder structure to map Pivotal Cloud Foundry artifacts int
     * Route Entity
 * organizations
     * Organization Entity
-        * domains
-        * managers
-        * users
+        * domains
+        * managers
+        * users
 * services
     * Service Entity
 
