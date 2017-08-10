@@ -1,12 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.Services
 {
 	[JsonObject("entity", NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-	public class PcfServiceInfo
+	public class PcfServiceInfo : InfoBase.PcfInfo
 	{
+		public PcfServiceInfo()
+		{
+			Plans = new List<ServicePlans.PcfServicePlan>();
+		}
+
 		public bool Active { get; set; }
 
 		public bool Bindable { get; set; }
@@ -27,6 +33,9 @@ namespace PcfProvider.Services
 		[JsonProperty("label")]
 		public string Name { get; set; }
 
+		[JsonIgnore()]
+		public List<ServicePlans.PcfServicePlan> Plans { get; set; }
+
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public bool PlanUpdateable { get; set; }
 
@@ -36,6 +45,9 @@ namespace PcfProvider.Services
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string ServiceBrokerGuid { get; set; }
+
+		[JsonIgnore()]
+		public Guid ServiceGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string ServicePlansUrl { get; set; }

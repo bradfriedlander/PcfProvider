@@ -31,6 +31,7 @@ This provider uses a folder structure to map Pivotal Cloud Foundry artifacts int
         * users
 * services
     * Service Entity
+		* plans
 
 ## License
 [This is an open source project using the MIT license.](docs/LICENSE.md)

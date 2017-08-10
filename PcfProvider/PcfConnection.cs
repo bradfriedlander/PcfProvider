@@ -13,6 +13,7 @@ using PcfOrganizationInfo = PcfProvider.Organizations.PcfOrganizationInfo;
 using PcfRouteInfo = PcfProvider.Routes.PcfRouteInfo;
 using PcfServiceBinding = PcfProvider.ServiceBindings.PcfServiceBinding;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
+using PcfServicePlan = PcfProvider.ServicePlans.PcfServicePlan;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
 namespace PcfProvider
@@ -65,7 +66,7 @@ namespace PcfProvider
 			if (Helpers.CheckNullOrEmpty(AllApps))
 			{
 				AllApps = GetAllInfo<PcfAppInfo, Apps.RootObject>(container);
-				AllApps.Resources.ForEach(r => r.Info.AppGuid = r.Metadata.Guid);
+				AllApps.Resources.ForEach(r => r.Info.InstanceId = r.Metadata.Guid);
 				GetAllServiceBindings();
 			}
 			else
@@ -101,11 +102,26 @@ namespace PcfProvider
 			return AllRoutes.Resources.Select(r => r.Info).ToList();
 		}
 
+		public List<PcfServicePlan> GetAllServicePlans()
+		{
+			var allServicePlans = GetAllInfo<PcfServicePlan, ServicePlans.RootObject>("", "/v2/service_plans");
+			return allServicePlans.Resources.Select(r => r.Info).ToList();
+		}
+
 		public List<PcfServiceInfo> GetAllServices(string container)
 		{
 			if (Helpers.CheckNullOrEmpty(AllOrganizations))
 			{
 				AllServices = GetAllInfo<PcfServiceInfo, Services.RootObject>(container);
+				AllServices.Resources.ForEach(r => r.Info.InstanceId = r.Metadata.Guid);
+				foreach (var servicePlan in GetAllServicePlans())
+				{
+					var service = AllServices.Resources.Find(r => r.Info.InstanceId == servicePlan.ServiceGuid);
+					if (service != null)
+					{
+						service.Info.Plans.Add(servicePlan);
+					}
+				}
 			}
 			else
 			{

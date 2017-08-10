@@ -40,6 +40,7 @@ namespace PcfProvider
 		private const string domainsSubcategory = "domains";
 		private const string managersSubcategory = "managers";
 		private const string orgsCategory = "organizations";
+		private const string plansSubcategory = "plans";
 		private const string routesCategory = "routes";
 		private const string serviceBindingsSubcategory = "serviceBindings";
 		private const string servicesCategory = "services";
@@ -55,8 +56,9 @@ namespace PcfProvider
 
 		private static readonly Dictionary<string, string[]> subCategoryNames = new Dictionary<string, string[]>
 		{
+			[appsCategory] = new string[] { serviceBindingsSubcategory },
 			[orgsCategory] = new string[] { domainsSubcategory, managersSubcategory, usersSubcategory },
-			[appsCategory] = new string[] { serviceBindingsSubcategory }
+			[servicesCategory] = new string[] { plansSubcategory }
 		};
 
 		private static PcfDriveInfo currentDriveInfo;
@@ -220,6 +222,21 @@ namespace PcfProvider
 								});
 								break;
 
+							case plansSubcategory:
+								var plans = GetServices(pathParts.category)
+									.Where(s => s.Name == pathParts.entityName)
+									.Select(s => s.Plans.Select(p => p).ToList())
+									.ToList();
+								plans.ForEach(ps => ps.ForEach(p =>
+								{
+									WriteItemObject(p, path, false);
+									if (recurse)
+									{
+										GetChildItems(MakeChildPathname(path, p.Name), recurse);
+									}
+								}));
+								break;
+
 							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
@@ -283,7 +300,7 @@ namespace PcfProvider
 					switch (pathParts.category)
 					{
 						case appsCategory:
-							GetApps(pathParts.category).ForEach(ai => WriteItemObject(ai.Name, path, false));
+							GetApps(pathParts.category).ForEach(ai => WriteItemObject(ai.Name, path, true));
 							break;
 
 						case orgsCategory:
@@ -291,11 +308,11 @@ namespace PcfProvider
 							break;
 
 						case routesCategory:
-							GetRoutes(pathParts.category).Where(ri => ri.Name == pathParts.entityName).ToList().ForEach(ri => WriteItemObject(ri.Name, path, false));
+							GetRoutes(pathParts.category).ForEach(ri => WriteItemObject(ri.Name, path, false));
 							break;
 
 						case servicesCategory:
-							GetServices(pathParts.category).ForEach(si => WriteItemObject(si.Name, path, false));
+							GetServices(pathParts.category).ForEach(si => WriteItemObject(si.Name, path, true));
 							break;
 					}
 					break;
@@ -318,6 +335,14 @@ namespace PcfProvider
 
 							case managersSubcategory:
 								GetManagers(pathParts.entityName).ForEach(mi => WriteItemObject(mi.Name, path, false));
+								break;
+
+							case plansSubcategory:
+								var plans = GetServices(pathParts.category)
+									.Where(s => s.Name == pathParts.entityName)
+									.Select(s => s.Plans.Select(p => p).ToList())
+									.ToList();
+								plans.ForEach(ps => ps.ForEach(p => WriteItemObject(p.Name, path, false)));
 								break;
 
 							case serviceBindingsSubcategory:
@@ -397,6 +422,14 @@ namespace PcfProvider
 
 							case managersSubcategory:
 								GetManagers(pathParts.entityName).FindAll(mi => mi.Name == pathParts.subEntity).ForEach(mi => WriteItemObject(mi, path, false));
+								break;
+
+							case plansSubcategory:
+								var plans = GetServices(pathParts.category)
+									.Where(s => s.Name == pathParts.entityName)
+									.Select(s => s.Plans.Select(p => p).ToList())
+									.ToList();
+								plans.ForEach(ps => ps.FindAll(s => s.Name == pathParts.subEntity).ForEach(p => WriteItemObject(p, path, false)));
 								break;
 
 							case serviceBindingsSubcategory:
@@ -538,6 +571,12 @@ namespace PcfProvider
 
 							case managersSubcategory:
 								return LogReturn(() => GetManagers(pathParts.entityName).Any(mi => mi.Name == pathParts.subEntity));
+
+							case plansSubcategory:
+								var plans = GetServices(pathParts.category)
+									.Where(si => si.Name == pathParts.entityName)
+									.Select(si => si.Plans);
+								return LogReturn(() => plans.Any());
 
 							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)

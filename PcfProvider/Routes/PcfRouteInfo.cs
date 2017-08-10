@@ -26,7 +26,7 @@ namespace PcfProvider.Routes
 		public string RouteMappingsUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public Guid ServiceInstanceGuid { get; set; }
+		public Guid? ServiceInstanceGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string ServiceInstanceUrl { get; set; }

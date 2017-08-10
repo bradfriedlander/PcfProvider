@@ -62,6 +62,7 @@
     <Compile Include="Domains\RootObject.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="InfoBase\Metadata.cs" />
+    <Compile Include="InfoBase\PcfInfo.cs" />
     <Compile Include="InfoBase\Resource.cs" />
     <Compile Include="InfoBase\RootObject.cs" />
     <Compile Include="Info\PcfInfo.cs" />
@@ -90,6 +91,8 @@
     <Compile Include="ServiceInstance\LastOperation.cs" />
     <Compile Include="ServiceInstance\Metadata.cs" />
     <Compile Include="ServiceInstance\RootObject.cs" />
+    <Compile Include="ServicePlans\PcfServicePlan.cs" />
+    <Compile Include="ServicePlans\RootObject.cs" />
     <Compile Include="Services\PcfServiceInfo.cs" />
     <Compile Include="Services\RootObject.cs" />
     <Compile Include="TraceTest.cs" />

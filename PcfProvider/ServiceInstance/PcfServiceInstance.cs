@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -26,13 +27,13 @@ namespace PcfProvider.ServiceInstance
 		public string ServiceBindingsUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string ServiceGuid { get; set; }
+		public Guid ServiceGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string ServiceKeysUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string ServicePlanGuid { get; set; }
+		public Guid ServicePlanGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string ServicePlanUrl { get; set; }
@@ -41,12 +42,12 @@ namespace PcfProvider.ServiceInstance
 		public string ServiceUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string SpaceGuid { get; set; }
+		public Guid SpaceGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string SpaceUrl { get; set; }
 
-		public List<object> Tags { get; set; }
+		public List<string> Tags { get; set; }
 
 		public string Type { get; set; }
 	}

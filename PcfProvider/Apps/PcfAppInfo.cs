@@ -6,15 +6,12 @@ using Newtonsoft.Json.Serialization;
 namespace PcfProvider.Apps
 {
 	[JsonObject("entity", NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-	public class PcfAppInfo
+	public class PcfAppInfo : InfoBase.PcfInfo
 	{
 		public PcfAppInfo()
 		{
 			ServiceBindings = new List<ServiceBindings.PcfServiceBinding>();
 		}
-
-		[JsonIgnore()]
-		public Guid AppGuid { get; set; }
 
 		public string Buildpack { get; set; }
 
@@ -85,7 +82,7 @@ namespace PcfProvider.Apps
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string RoutesUrl { get; set; }
 
-		[JsonIgnore()]
+		[JsonIgnore]
 		public List<ServiceBindings.PcfServiceBinding> ServiceBindings { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]

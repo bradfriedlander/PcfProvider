@@ -1,7 +1,7 @@
 ﻿Import-Module -Name .\PcfProvider.dll
 Get-PSProvider
 echo "Create PCF drive."
-#New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Get-Content 'user.txt') -Password (Read-Host "Password")
+#New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Read-Host "User Name") -Password (Read-Host "Password")
 New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Get-Content 'user.txt') -Password (Get-Content 'password.txt') #-IsLogItems
 #New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -IsLocal -IsLogItems
 echo "dir PCF:"
@@ -21,7 +21,7 @@ gci apps | %{echo $_.ServiceBindings.ServiceInstance}
 #echo "cd ..\services; dir"
 #cd ..\services
 #dir
-echo "gci .\services | ft Name,Active,UniqueId,Description"
-gci .\services |ft Name,Active,UniqueId,Description
+echo "gci .\services | ft Name,Active,InstanceId,Description"
+gci .\services | ft Name,Active,InstanceId,Description
 echo "gci .\organizations | ft Name,Status"
 gci .\organizations | ft Name,Status
