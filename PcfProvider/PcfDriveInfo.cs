@@ -56,7 +56,7 @@ namespace PcfProvider
 		public bool PathIsDrive(string path)
 		{
 			return
-				path.Equals(@"\")
+				path.Equals(PathSeparator)
 				|| IsNullOrEmpty(path.Replace($"{DriveInfo.Root}:", Empty))
 				|| IsNullOrEmpty(path.Replace($"{DriveInfo.Root}{PathSeparator}:", Empty));
 		}

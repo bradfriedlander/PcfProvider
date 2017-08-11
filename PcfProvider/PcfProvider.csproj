@@ -100,7 +100,7 @@
     <Compile Include="Users\RootObject.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="PcfPSProvider.psd1">
+    <Content Include="PcfProvider.psd1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="user.txt">

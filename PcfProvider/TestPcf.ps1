@@ -1,4 +1,4 @@
-﻿Import-Module -Name .\PcfProvider.dll
+﻿Import-Module -Name .\PcfProvider.psd1 -Verbose
 Get-PSProvider
 echo "Create PCF drive."
 #New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Read-Host "User Name") -Password (Read-Host "Password")
