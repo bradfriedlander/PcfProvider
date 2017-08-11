@@ -1,4 +1,4 @@
-﻿Import-Module -Name .\PcfProvider.psd1 -Verbose
+﻿Import-Module -Name .\PcfProvider -Verbose
 Get-PSProvider
 echo "Create PCF drive."
 #New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Read-Host "User Name") -Password (Read-Host "Password")
@@ -11,17 +11,15 @@ dir PCF:\apps
 echo "cd PCF:; dir"
 cd PCF:
 dir
-#echo "cd .\apps; dir"
-#cd .\apps
-#dir
-echo "gci | ft Name,MemoryKb,DiskKb,Instances"
-gci .\apps | ft Name,MemoryKb,DiskKb,Instances
-echo "gci apps | %{echo $_.ServiceBindings.ServiceInstance}"
-gci apps | %{echo $_.ServiceBindings.ServiceInstance}
-#echo "cd ..\services; dir"
-#cd ..\services
-#dir
+echo "gci .\apps | ft"
+gci .\apps | ft
+echo "gci .\apps | fl"
+gci .\apps | fl
+echo "gci .\apps | %{echo $_.ServiceBindings.ServiceInstance}"
+gci .\apps | %{echo $_.ServiceBindings.ServiceInstance}
 echo "gci .\services | ft Name,Active,InstanceId,Description"
 gci .\services | ft Name,Active,InstanceId,Description
 echo "gci .\organizations | ft Name,Status"
 gci .\organizations | ft Name,Status
+echo "gci .\services\*\plans\* | ft -GroupBy PSParentPath Name,Active,Free,Description"
+gci .\services\*\plans\* | ft -GroupBy PSParentPath Name,Active,Free,Description

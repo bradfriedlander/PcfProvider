@@ -7,6 +7,56 @@
 			<ViewSelectedBy>
 				<Typename>PcfProvider.Apps.PcfAppInfo</Typename>
 			</ViewSelectedBy>
+			<TableControl>
+				<TableHeaders>
+					<TableColumnHeader>
+						<Label>Application</Label>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Label>Memory (KB)</Label>
+						<Alignment>right</Alignment>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Label>Disk (KB)</Label>
+						<Alignment>right</Alignment>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Label>Instances</Label>
+						<Alignment>right</Alignment>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Label>State</Label>
+					</TableColumnHeader>
+				</TableHeaders>
+				<TableRowEntries>
+					<TableRowEntry>
+						<Wrap />
+						<TableColumnItems>
+							<TableColumnItem>
+								<PropertyName>Name</PropertyName>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>MemoryKb</PropertyName>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>DiskKb</PropertyName>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>Instances</PropertyName>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>State</PropertyName>
+							</TableColumnItem>
+						</TableColumnItems>
+					</TableRowEntry>
+				</TableRowEntries>
+			</TableControl>
+		</View>
+		<View>
+			<Name>DefaultPcfAppInfo</Name>
+			<ViewSelectedBy>
+				<Typename>PcfProvider.Apps.PcfAppInfo</Typename>
+			</ViewSelectedBy>
 			<ListControl>
 				<ListEntries>
 					<ListEntry>
