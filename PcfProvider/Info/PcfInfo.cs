@@ -4,7 +4,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.Info
 {
-	public class PcfInfo
+	public class PcfInfo : InfoBase.RootObjectSimple<PcfInfo>
 	{
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string ApiVersion { get; set; }

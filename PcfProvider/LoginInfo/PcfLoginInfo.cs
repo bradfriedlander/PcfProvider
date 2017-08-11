@@ -4,7 +4,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.LoginInfo
 {
-	public class PcfLoginInfo
+	public class PcfLoginInfo : InfoBase.RootObjectSimple<PcfLoginInfo>
 	{
 		public App App { get; set; }
 
@@ -19,9 +19,9 @@ namespace PcfProvider.LoginInfo
 
 		public Prompts Prompts { get; set; }
 
-		public string Timestamp { get; set; }
+		public DateTime Timestamp { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string Zone_name { get; set; }
+		public string ZoneName { get; set; }
 	}
 }

@@ -25,5 +25,8 @@ namespace PcfProvider.InfoBase
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public int TotalResults { get; set; }
+
+		[JsonIgnore]
+		public DateTime UtcExpiration { get; set; }
 	}
 }

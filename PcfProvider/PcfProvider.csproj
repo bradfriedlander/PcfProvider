@@ -65,6 +65,7 @@
     <Compile Include="InfoBase\PcfInfo.cs" />
     <Compile Include="InfoBase\Resource.cs" />
     <Compile Include="InfoBase\RootObject.cs" />
+    <Compile Include="InfoBase\RootObjectSimple.cs" />
     <Compile Include="Info\PcfInfo.cs" />
     <Compile Include="LoginInfo\App.cs" />
     <Compile Include="LoginInfo\IdpDefinitions.cs" />

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Newtonsoft.Json;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
@@ -41,14 +42,6 @@ namespace PcfProvider
 
 		public string AccessToken { get; private set; }
 
-		public Apps.RootObject AllApps { get; private set; }
-
-		public Organizations.RootObject AllOrganizations { get; private set; }
-
-		public Routes.RootObject AllRoutes { get; private set; }
-
-		public Services.RootObject AllServices { get; private set; }
-
 		public PSCredential Credential { get; }
 
 		public DateTime ExpirationTime { get; private set; }
@@ -61,45 +54,41 @@ namespace PcfProvider
 
 		public string Uri { get; }
 
+		public static Dictionary<Type, object> CachedRootObjects = new Dictionary<Type, object>();
+
+		public static Dictionary<Type, int> RootObjectLifetimeInSeconds = new Dictionary<Type, int>()
+		{
+			[typeof(Apps.RootObject)] = 30,
+			[typeof(Organizations.RootObject)] = 600,
+			[typeof(Routes.RootObject)] = 30,
+			[typeof(Services.RootObject)] = 600
+		};
+
 		public List<PcfAppInfo> GetAllApps(string container)
 		{
-			if (Helpers.CheckNullOrEmpty(AllApps))
-			{
-				AllApps = GetAllInfo<PcfAppInfo, Apps.RootObject>(container);
-				AllApps.Resources.ForEach(r => r.Info.InstanceId = r.Metadata.Guid);
-				GetAllServiceBindings();
-			}
-			else
-			{
-				Tracer.WriteLineIndent($"Reusing contents of {nameof(AllApps)}.");
-			}
-			return AllApps.Resources.Select(r => r.Info).ToList();
+			var allApps = GetFromCache<Apps.RootObject, PcfAppInfo>(
+				() =>
+				{
+					var appsRoot = GetAllInfo<PcfAppInfo, Apps.RootObject>(container);
+					appsRoot.Resources.ForEach(r => r.Info.InstanceId = r.Metadata.Guid);
+					GetAllServiceBindings(appsRoot);
+					return appsRoot;
+				});
+			return allApps.Resources.Select(r => r.Info).ToList();
 		}
 
 		public List<PcfOrganizationInfo> GetAllOrganizations(string container)
 		{
-			if (Helpers.CheckNullOrEmpty(AllOrganizations))
-			{
-				AllOrganizations = GetAllInfo<PcfOrganizationInfo, Organizations.RootObject>(container);
-			}
-			else
-			{
-				Tracer.WriteLineIndent($"Reusing contents of {nameof(AllOrganizations)}.");
-			}
-			return AllOrganizations.Resources.Select(r => r.Info).ToList();
+			var allOrganizations = GetFromCache<Organizations.RootObject, PcfOrganizationInfo>(
+				() => GetAllInfo<PcfOrganizationInfo, Organizations.RootObject>(container));
+			return allOrganizations.Resources.Select(r => r.Info).ToList();
 		}
 
 		public List<PcfRouteInfo> GetAllRoutes(string container)
 		{
-			if (Helpers.CheckNullOrEmpty(AllRoutes))
-			{
-				AllRoutes = GetAllInfo<PcfRouteInfo, Routes.RootObject>(container);
-			}
-			else
-			{
-				Tracer.WriteLineIndent($"Reusing contents of {nameof(AllRoutes)}.");
-			}
-			return AllRoutes.Resources.Select(r => r.Info).ToList();
+			var allRoutes = GetFromCache<Routes.RootObject, PcfRouteInfo>(
+				() => GetAllInfo<PcfRouteInfo, Routes.RootObject>(container));
+			return allRoutes.Resources.Select(r => r.Info).ToList();
 		}
 
 		public List<PcfServicePlan> GetAllServicePlans()
@@ -110,24 +99,22 @@ namespace PcfProvider
 
 		public List<PcfServiceInfo> GetAllServices(string container)
 		{
-			if (Helpers.CheckNullOrEmpty(AllOrganizations))
-			{
-				AllServices = GetAllInfo<PcfServiceInfo, Services.RootObject>(container);
-				AllServices.Resources.ForEach(r => r.Info.InstanceId = r.Metadata.Guid);
-				foreach (var servicePlan in GetAllServicePlans())
-				{
-					var service = AllServices.Resources.Find(r => r.Info.InstanceId == servicePlan.ServiceGuid);
-					if (service != null)
+			var allServices = GetFromCache<Services.RootObject, PcfServiceInfo>(
+				() =>
 					{
-						service.Info.Plans.Add(servicePlan);
-					}
-				}
-			}
-			else
-			{
-				Tracer.WriteLineIndent($"Reusing contents of {nameof(AllServices)}.");
-			}
-			return AllServices.Resources.Select(r => r.Info).ToList();
+						var servicesRoot = GetAllInfo<PcfServiceInfo, Services.RootObject>(container);
+						servicesRoot.Resources.ForEach(r => r.Info.InstanceId = r.Metadata.Guid);
+						foreach (var servicePlan in GetAllServicePlans())
+						{
+							var service = servicesRoot.Resources.Find(r => r.Info.InstanceId == servicePlan.ServiceGuid);
+							if (service != null)
+							{
+								service.Info.Plans.Add(servicePlan);
+							}
+						}
+						return servicesRoot;
+					});
+			return allServices.Resources.Select(r => r.Info).ToList();
 		}
 
 		public void Login(string username, string password)
@@ -188,9 +175,9 @@ namespace PcfProvider
 			return allUserInfo.Resources.Select(r => r.Info).ToList();
 		}
 
-		private void GetAllServiceBindings()
+		private void GetAllServiceBindings(Apps.RootObject allApps)
 		{
-			foreach (var app in AllApps.Resources.Select(r => r.Info))
+			foreach (var app in allApps.Resources.Select(r => r.Info))
 			{
 				var serviceBindingUrl = app.ServiceBindingsUrl;
 				var serviceBindings = GetAllInfo<PcfServiceBinding, ServiceBindings.RootObject>("service_bindings", serviceBindingUrl);
@@ -216,6 +203,45 @@ namespace PcfProvider
 				? $"grant_type=password&password={password}&scope=&username={userName}"
 				: $"username={userName}&password={password}&client_id=cf&grant_type=password&response_type=token";
 			return GetOauthReponse(data);
+		}
+
+		/// <summary>
+		///     This method gets the root object from a cache.
+		/// </summary>
+		/// <typeparam name="TRoot">This is the type of the root object.</typeparam>
+		/// <typeparam name="TInfo">This is the type of the information contained in the root object.</typeparam>
+		/// <param name="function">This is the function that retrieves the root object.</param>
+		/// <param name="lifetimeSeconds">This is the lifetime (in seconds) of the root object.</param>
+		/// <returns>This is a current instance of the root object.</returns>
+		/// <remarks>
+		///     <para>
+		///         Note 1: <see cref="RootObjectLifetimeInSeconds" /> contains the lifetime (in seconds) for each root object type managed by the
+		///         cache. If there is no entry, 30 seconds is used.
+		///     </para>
+		/// </remarks>
+		private TRoot GetFromCache<TRoot, TInfo>(Func<TRoot> function, [CallerMemberName]string callerName = "") where TRoot : InfoBase.RootObject<TInfo>
+
+		{
+			var rootType = typeof(TRoot);
+			if (CachedRootObjects.ContainsKey(rootType) && (CachedRootObjects[rootType] as TRoot).UtcExpiration > DateTime.UtcNow)
+			{
+				Tracer.WriteLineIndent($"Reusing contents of {rootType}.", callerName);
+				return CachedRootObjects[rootType] as TRoot;
+			}
+			Tracer.WriteLineIndent($"Populating contents of {rootType}.", callerName);
+			var rootObject = function();
+			// Note 1
+			var lifetimeSeconds = RootObjectLifetimeInSeconds.ContainsKey(rootType) ? RootObjectLifetimeInSeconds[rootType] : 30;
+			rootObject.UtcExpiration = DateTime.UtcNow.AddSeconds(lifetimeSeconds);
+			if (CachedRootObjects.ContainsKey(rootType))
+			{
+				CachedRootObjects[rootType] = rootObject;
+			}
+			else
+			{
+				CachedRootObjects.Add(rootType, rootObject);
+			}
+			return rootObject;
 		}
 
 		private OAuthResponse GetOauthReponse(string data)
