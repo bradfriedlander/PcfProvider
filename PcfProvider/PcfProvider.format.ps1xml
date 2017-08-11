@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <!-- need schema for .format.ps1xml files -->
 <Configuration>
-	<!-- ################ GLOBAL CONTROL DEFINITIONS ################ -->
+	<!-- ### GLOBAL CONTROL DEFINITIONS ### -->
 	<Controls>
 		<Control>
 			<Name>ServicePlans-GroupingFormat</Name>
@@ -18,7 +18,7 @@
 											$_.PSParentPath.Replace("\plans", "").Replace("PcfProvider\Pcf::\services\","")
 										</ScriptBlock>
 									</ExpressionBinding>
-									<NewLine/>
+									<NewLine />
 								</CustomItem>
 							</Frame>
 						</CustomItem>
@@ -27,8 +27,9 @@
 			</CustomControl>
 		</Control>
 	</Controls>
-	<!-- ################ VIEW DEFINITIONS ################ -->
+	<!-- ### VIEW DEFINITIONS ### -->
 	<ViewDefinitions>
+		<!-- ### PcfProvider.Apps.PcfAppInfo ###-->
 		<View>
 			<Name>DefaultPcfAppInfo</Name>
 			<ViewSelectedBy>
@@ -105,8 +106,9 @@
 				</ListEntries>
 			</ListControl>
 		</View>
+		<!-- ### PcfProvider.ServicePlans.PcfServicePlan ###-->
 		<View>
-			<Name>DefaultPcfAppInfo</Name>
+			<Name>DefaultPcfServicePlan</Name>
 			<ViewSelectedBy>
 				<Typename>PcfProvider.ServicePlans.PcfServicePlan</Typename>
 			</ViewSelectedBy>
@@ -149,6 +151,35 @@
 					</TableRowEntry>
 				</TableRowEntries>
 			</TableControl>
+		</View>
+		<View>
+			<Name>DefaultPcfServicePlan</Name>
+			<ViewSelectedBy>
+				<Typename>PcfProvider.ServicePlans.PcfServicePlan</Typename>
+			</ViewSelectedBy>
+			<ListControl>
+				<ListEntries>
+					<ListEntry>
+						<ListItems>
+							<ListItem>
+								<PropertyName>PSParentPath</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>Name</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>Active</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>Free</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>Description</PropertyName>
+							</ListItem>
+						</ListItems>
+					</ListEntry>
+				</ListEntries>
+			</ListControl>
 		</View>
 	</ViewDefinitions>
 </Configuration>

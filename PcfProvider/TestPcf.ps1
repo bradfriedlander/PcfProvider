@@ -23,3 +23,5 @@ echo "gci .\organizations | ft Name,Status"
 gci .\organizations | ft Name,Status
 echo "gci .\services\*\plans\* | ft"
 gci .\services\*\plans\* | ft
+echo "gci .\services\*\plans\* | fl"
+gi .\services\*\plans\* | fl
