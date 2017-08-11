@@ -21,5 +21,5 @@ echo "gci .\services | ft Name,Active,InstanceId,Description"
 gci .\services | ft Name,Active,InstanceId,Description
 echo "gci .\organizations | ft Name,Status"
 gci .\organizations | ft Name,Status
-echo "gci .\services\*\plans\* | ft -GroupBy PSParentPath Name,Active,Free,Description"
-gci .\services\*\plans\* | ft -GroupBy PSParentPath Name,Active,Free,Description
+echo "gci .\services\*\plans\* | ft"
+gci .\services\*\plans\* | ft

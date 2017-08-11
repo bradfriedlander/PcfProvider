@@ -1,6 +1,33 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <!-- need schema for .format.ps1xml files -->
 <Configuration>
+	<!-- ################ GLOBAL CONTROL DEFINITIONS ################ -->
+	<Controls>
+		<Control>
+			<Name>ServicePlans-GroupingFormat</Name>
+			<CustomControl>
+				<CustomEntries>
+					<CustomEntry>
+						<CustomItem>
+							<Frame>
+								<LeftIndent>4</LeftIndent>
+								<CustomItem>
+									<Text>Service: </Text>
+									<ExpressionBinding>
+										<ScriptBlock>
+											$_.PSParentPath.Replace("\plans", "").Replace("PcfProvider\Pcf::\services\","")
+										</ScriptBlock>
+									</ExpressionBinding>
+									<NewLine/>
+								</CustomItem>
+							</Frame>
+						</CustomItem>
+					</CustomEntry>
+				</CustomEntries>
+			</CustomControl>
+		</Control>
+	</Controls>
+	<!-- ################ VIEW DEFINITIONS ################ -->
 	<ViewDefinitions>
 		<View>
 			<Name>DefaultPcfAppInfo</Name>
@@ -77,6 +104,51 @@
 					</ListEntry>
 				</ListEntries>
 			</ListControl>
+		</View>
+		<View>
+			<Name>DefaultPcfAppInfo</Name>
+			<ViewSelectedBy>
+				<Typename>PcfProvider.ServicePlans.PcfServicePlan</Typename>
+			</ViewSelectedBy>
+			<GroupBy>
+				<PropertyName>PSParentPath</PropertyName>
+				<CustomControlName>ServicePlans-GroupingFormat</CustomControlName>
+			</GroupBy>
+			<TableControl>
+				<TableHeaders>
+					<TableColumnHeader>
+						<Label>Name</Label>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Label>Active</Label>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Label>Free</Label>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Label>Description</Label>
+					</TableColumnHeader>
+				</TableHeaders>
+				<TableRowEntries>
+					<TableRowEntry>
+						<Wrap />
+						<TableColumnItems>
+							<TableColumnItem>
+								<PropertyName>Name</PropertyName>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>Active</PropertyName>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>Free</PropertyName>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>Description</PropertyName>
+							</TableColumnItem>
+						</TableColumnItems>
+					</TableRowEntry>
+				</TableRowEntries>
+			</TableControl>
 		</View>
 	</ViewDefinitions>
 </Configuration>
