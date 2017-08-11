@@ -7,8 +7,9 @@ Issue the following PowerShell commands.
 * This assumes you want to access the Pivotal Web Service.
 * The files 'user.txt' and 'password.txt' need to be created with contents being the user name and password you use to access this instance of PCF.
 * All paths should be adjusted for your usage.
-```
-Import-Module -Name .\PcfProvider.dll
+* The **-Verbose** switch can be removed with no impact.
+```powershell
+Import-Module -Name .\PcfProvider -Verbose
 New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Get-Content 'user.txt') -Password (Get-Content 'password.txt')
 ```
 ## Drive Structure
@@ -32,6 +33,9 @@ This provider uses a folder structure to map Pivotal Cloud Foundry artifacts int
 * services
     * Service Entity
 		* plans
+
+## CF Equivalents
+Some of the CF functions that retrieve PCF information can be emulated using this provider.
 
 ## License
 [This is an open source project using the MIT license.](docs/LICENSE.md)

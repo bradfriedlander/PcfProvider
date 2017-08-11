@@ -106,11 +106,9 @@ namespace PcfProvider
 						servicesRoot.Resources.ForEach(r => r.Info.InstanceId = r.Metadata.Guid);
 						foreach (var servicePlan in GetAllServicePlans())
 						{
-							var service = servicesRoot.Resources.Find(r => r.Info.InstanceId == servicePlan.ServiceGuid);
-							if (service != null)
-							{
-								service.Info.Plans.Add(servicePlan);
-							}
+							servicesRoot.Resources
+								.Find(r => r.Info.InstanceId == servicePlan.ServiceGuid)
+								?.Info.Plans.Add(servicePlan);
 						}
 						return servicesRoot;
 					});
