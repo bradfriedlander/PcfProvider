@@ -1,3 +1,4 @@
+
 # PcfProvider: PowerShell Provider for Pivotal Cloud Foundry
 
 This project provides a PowerShell provider that supports hierarchical access to Pivotal Cloud Foundry artifacts. 
@@ -35,7 +36,23 @@ This provider uses a folder structure to map Pivotal Cloud Foundry artifacts int
 		* plans
 
 ## CF Equivalents
-Some of the CF functions that retrieve PCF information can be emulated using this provider.
+Some of the CF functions that retrieve PCF information can be emulated using this provider. These are still being augmented.
+
+PowerShell aliases can be used for the commands.
+
+```powershell
+Write-Host "Replacement for 'cf m'"
+Get-Item .\services\*\plans\* | Format-Table
+```
+```powershell
+Write-Host "Replacement for 'cf apps' except url"
+Get-ChildItems .\apps | Format-Table
+```
+```powershell
+
+Write-Host "Replacement for 'cf domains' (partial)"
+Get-ChildItem .\organizations\*\domains\* | Format-Table -GroupBy PSParentPath Name
+```
 
 ## License
 [This is an open source project using the MIT license.](docs/LICENSE.md)
