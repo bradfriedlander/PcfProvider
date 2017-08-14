@@ -5,7 +5,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.ServiceInstance
 {
-	public class PcfServiceInstance
+	public class PcfServiceInstance : InfoBase.PcfInfo
 	{
 		public Credentials Credentials { get; set; }
 
@@ -18,7 +18,7 @@ namespace PcfProvider.ServiceInstance
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public LastOperation LastOperation { get; set; }
 
-		public string Name { get; set; }
+		public override string Name { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string RoutesUrl { get; set; }

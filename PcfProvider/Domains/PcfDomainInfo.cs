@@ -4,9 +4,9 @@ using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.Domains
 {
-	public class PcfDomainInfo
+	public class PcfDomainInfo : InfoBase.PcfInfo
 	{
-		public string Name { get; set; }
+		public override string Name { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string OwningOrganizationGuid { get; set; }

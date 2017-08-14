@@ -42,6 +42,7 @@ namespace PcfProvider
 		private const string orgsCategory = "organizations";
 		private const string plansSubcategory = "plans";
 		private const string routesCategory = "routes";
+		private const string routesSubcategory = "routes";
 		private const string serviceBindingsSubcategory = "serviceBindings";
 		private const string servicesCategory = "services";
 		private const string usersSubcategory = "users";
@@ -56,7 +57,7 @@ namespace PcfProvider
 
 		private static readonly Dictionary<string, string[]> subCategoryNames = new Dictionary<string, string[]>
 		{
-			[appsCategory] = new string[] { serviceBindingsSubcategory },
+			[appsCategory] = new string[] { routesSubcategory, serviceBindingsSubcategory },
 			[orgsCategory] = new string[] { domainsSubcategory, managersSubcategory, usersSubcategory },
 			[servicesCategory] = new string[] { plansSubcategory }
 		};
@@ -201,25 +202,11 @@ namespace PcfProvider
 						switch (pathParts.subCategory)
 						{
 							case domainsSubcategory:
-								GetDomains(pathParts.entityName).ForEach(di =>
-								{
-									WriteItemObject(di, path, false);
-									if (recurse)
-									{
-										GetChildItems(MakeChildPathname(path, di.Name), recurse);
-									}
-								});
+								RecurseForName(GetDomains(pathParts.entityName), path, recurse);
 								break;
 
 							case managersSubcategory:
-								GetManagers(pathParts.entityName).ForEach(mi =>
-								{
-									WriteItemObject(mi, path, false);
-									if (recurse)
-									{
-										GetChildItems(MakeChildPathname(path, mi.Name), recurse);
-									}
-								});
+								RecurseForName(GetManagers(pathParts.entityName), path, recurse);
 								break;
 
 							case plansSubcategory:
@@ -227,40 +214,27 @@ namespace PcfProvider
 									.Where(s => s.Name == pathParts.entityName)
 									.Select(s => s.Plans.Select(p => p).ToList())
 									.ToList();
-								plans.ForEach(ps => ps.ForEach(p =>
-								{
-									WriteItemObject(p, path, false);
-									if (recurse)
-									{
-										GetChildItems(MakeChildPathname(path, p.Name), recurse);
-									}
-								}));
+								RecurseForName(plans, path, recurse);
+								break;
+
+							case routesSubcategory:
+								var appRoutes = GetApps(pathParts.category)
+									.Where(ai => ai.Name == pathParts.entityName)
+									.Select(ai => ai.Routes.Select(p => p).ToList())
+									.ToList();
+								RecurseForName(appRoutes, path, recurse);
 								break;
 
 							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
-									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
+									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance).ToList())
 									.ToList();
-								services.ForEach(s => s.ToList().ForEach(si =>
-								{
-									WriteItemObject(si, path, false);
-									if (recurse)
-									{
-										GetChildItems(MakeChildPathname(path, si.Name), recurse);
-									}
-								}));
+								RecurseForName(services, path, recurse);
 								break;
 
 							case usersSubcategory:
-								GetUsers(pathParts.entityName).ForEach(ui =>
-								{
-									WriteItemObject(ui, path, false);
-									if (recurse)
-									{
-										GetChildItems(MakeChildPathname(path, ui.Name), recurse);
-									}
-								});
+								RecurseForName(GetUsers(pathParts.entityName), path, recurse);
 								break;
 						}
 					}
@@ -343,6 +317,14 @@ namespace PcfProvider
 									.Select(s => s.Plans.Select(p => p).ToList())
 									.ToList();
 								plans.ForEach(ps => ps.ForEach(p => WriteItemObject(p.Name, path, false)));
+								break;
+
+							case routesSubcategory:
+								var appRoutes = GetApps(pathParts.category)
+									.Where(ai => ai.Name == pathParts.entityName)
+									.Select(ai => ai.Routes.Select(p => p).ToList())
+									.ToList();
+								appRoutes.ForEach(ar => ar.ForEach(r => WriteItemObject(r.Name, path, false)));
 								break;
 
 							case serviceBindingsSubcategory:
@@ -430,6 +412,14 @@ namespace PcfProvider
 									.Select(s => s.Plans.Select(p => p).ToList())
 									.ToList();
 								plans.ForEach(ps => ps.FindAll(s => s.Name == pathParts.subEntity).ForEach(p => WriteItemObject(p, path, false)));
+								break;
+
+							case routesSubcategory:
+								var appRoutes = GetApps(pathParts.category)
+									.Where(ai => ai.Name == pathParts.entityName)
+									.Select(ai => ai.Routes.Select(ri => ri).ToList())
+									.ToList();
+								appRoutes.ForEach(ar => ar.FindAll(ri => ri.Name == pathParts.subEntity).ForEach(ri => WriteItemObject(ri, path, false)));
 								break;
 
 							case serviceBindingsSubcategory:
@@ -577,6 +567,12 @@ namespace PcfProvider
 									.Where(si => si.Name == pathParts.entityName)
 									.Select(si => si.Plans);
 								return LogReturn(() => plans.Any());
+
+							case routesSubcategory:
+								var appRoutes = GetApps(pathParts.category)
+									.Where(ai => ai.Name == pathParts.entityName)
+									.Select(ai => ai.Routes);
+								return LogReturn(() => appRoutes.Any());
 
 							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
@@ -828,6 +824,31 @@ namespace PcfProvider
 			}
 			// TODO: Check if PCF endpoint exists
 			return false;
+		}
+
+		private void RecurseForName<TInfo>(List<List<TInfo>> entity, string path, bool recurse) where TInfo : InfoBase.PcfInfo
+		{
+			entity.ForEach(es => es.ForEach(e =>
+			{
+				WriteItemObject(e, path, false);
+				if (recurse)
+				{
+					GetChildItems(MakeChildPathname(path, e.Name), recurse);
+				}
+			}));
+		}
+
+		private void RecurseForName<TInfo>(List<TInfo> entity, string path, bool recurse) where TInfo : InfoBase.PcfInfo
+		{
+			entity.ForEach(e =>
+			{
+				WriteItemObject(e, path, false);
+				if (recurse)
+				{
+					GetChildItems(MakeChildPathname(path, e.Name), recurse);
+				}
+			}
+			);
 		}
 
 		private string RemoveDriveFromPath(string path) => path.Replace($"{currentDriveInfo.Root}:", string.Empty);

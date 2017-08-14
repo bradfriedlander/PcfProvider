@@ -3,9 +3,11 @@ using Newtonsoft.Json;
 
 namespace PcfProvider.InfoBase
 {
-	public class PcfInfo
+	public abstract class PcfInfo
 	{
 		[JsonIgnore]
 		public Guid InstanceId { get; set; }
+
+		public abstract string Name { get; set; }
 	}
 }

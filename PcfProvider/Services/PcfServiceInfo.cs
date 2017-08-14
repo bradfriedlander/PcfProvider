@@ -31,7 +31,7 @@ namespace PcfProvider.Services
 		public object LongDescription { get; set; }
 
 		[JsonProperty("label")]
-		public string Name { get; set; }
+		public override string Name { get; set; }
 
 		[JsonIgnore()]
 		public List<ServicePlans.PcfServicePlan> Plans { get; set; }

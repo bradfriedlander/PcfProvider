@@ -4,7 +4,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.Routes
 {
-	public class PcfRouteInfo
+	public class PcfRouteInfo : InfoBase.PcfInfo
 	{
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string AppsUrl { get; set; }
@@ -16,7 +16,7 @@ namespace PcfProvider.Routes
 		public string DomainUrl { get; set; }
 
 		[JsonProperty("host")]
-		public string Name { get; set; }
+		public override string Name { get; set; }
 
 		public string Path { get; set; }
 

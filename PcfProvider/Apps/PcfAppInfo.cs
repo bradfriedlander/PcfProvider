@@ -25,7 +25,7 @@ namespace PcfProvider.Apps
 		public string DetectedBuildpack { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string DetectedBuildpackGuid { get; set; }
+		public Guid? DetectedBuildpackGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string DetectedStartCommand { get; set; }
@@ -64,20 +64,23 @@ namespace PcfProvider.Apps
 		[JsonProperty("memory")]
 		public int MemoryKb { get; set; }
 
-		public string Name { get; set; }
+		public override string Name { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string PackageState { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string PackageUpdatedAt { get; set; }
+		public DateTime PackageUpdatedAt { get; set; }
 
 		public List<int> Ports { get; set; }
 
 		public bool Production { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string routeMappingsUrl { get; set; }
+		public string RouteMappingsUrl { get; set; }
+
+		[JsonIgnore]
+		public List<Routes.PcfRouteInfo> Routes { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string RoutesUrl { get; set; }
@@ -89,22 +92,22 @@ namespace PcfProvider.Apps
 		public string ServiceBindingsUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string SpaceGuid { get; set; }
+		public Guid SpaceGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string SpaceUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string StackGuid { get; set; }
+		public Guid StackGuid { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string StackUrl { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public object StagingFailedDescription { get; set; }
+		public string StagingFailedDescription { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public object StagingFailedReason { get; set; }
+		public string StagingFailedReason { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string StagingTaskId { get; set; }

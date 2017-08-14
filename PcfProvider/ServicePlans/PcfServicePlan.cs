@@ -4,7 +4,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.ServicePlans
 {
-	public class PcfServicePlan
+	public class PcfServicePlan : InfoBase.PcfInfo
 	{
 		public bool Active { get; set; }
 
@@ -16,7 +16,7 @@ namespace PcfProvider.ServicePlans
 
 		public bool Free { get; set; }
 
-		public string Name { get; set; }
+		public override string Name { get; set; }
 
 		public bool Public { get; set; }
 

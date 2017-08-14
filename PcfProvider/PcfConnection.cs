@@ -74,6 +74,7 @@ namespace PcfProvider
 					var appsRoot = GetAllInfo<PcfAppInfo, Apps.RootObject>(container);
 					appsRoot.Resources.ForEach(r => r.Info.InstanceId = r.Metadata.Guid);
 					GetAllServiceBindings(appsRoot);
+					GetAppRoutes(appsRoot);
 					return appsRoot;
 				});
 			return allApps.Resources.Select(r => r.Info).ToList();
@@ -189,6 +190,16 @@ namespace PcfProvider
 					serviceBinding.Info.ServiceInstance = serviceInstance.ServiceInstance;
 					app.ServiceBindings.Add(serviceBinding.Info);
 				}
+			}
+		}
+
+		private void GetAppRoutes(Apps.RootObject appsRoot)
+		{
+			foreach (var nextResource in appsRoot.Resources)
+			{
+				var appInfo = nextResource.Info;
+				var appRoutes = GetAllInfo<PcfRouteInfo, Routes.RootObject>(appInfo.Name, appInfo.RoutesUrl);
+				appInfo.Routes = appRoutes.Resources.Select(rr => rr.Info).ToList();
 			}
 		}
 
