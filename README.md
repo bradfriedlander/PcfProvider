@@ -58,17 +58,18 @@ This provider uses a folder structure to map Pivotal Cloud Foundry artifacts int
 Some of the CF functions that retrieve PCF information can be emulated using this provider. These are still being augmented.
 
 PowerShell aliases can be used for the commands.
-
+* Get marketplace and plans.
 ```powershell
 Write-Host "Replacement for 'cf m'"
 Get-Item .\services\*\plans\* | Format-Table
 ```
+* Get all applications.
 ```powershell
 Write-Host "Replacement for 'cf apps' except url"
 Get-ChildItems .\apps | Format-Table
 ```
+* Get all the domains for all organizations.
 ```powershell
-
 Write-Host "Replacement for 'cf domains' (partial)"
 Get-ChildItem .\organizations\*\domains\* | Format-Table -GroupBy PSParentPath Name
 ```
