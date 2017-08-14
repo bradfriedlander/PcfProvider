@@ -81,6 +81,8 @@
     <Compile Include="PcfDriveInfo.cs" />
     <Compile Include="PcfPSProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RouteMappings\PcfRouteMapping.cs" />
+    <Compile Include="RouteMappings\RootObject.cs" />
     <Compile Include="Routes\PcfRouteInfo.cs" />
     <Compile Include="Routes\RootObject.cs" />
     <Compile Include="ServiceBindings\BindingOptions.cs" />
