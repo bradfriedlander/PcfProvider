@@ -61,7 +61,9 @@ namespace PcfProvider
 			[typeof(Apps.RootObject)] = 30,
 			[typeof(Organizations.RootObject)] = 600,
 			[typeof(Routes.RootObject)] = 30,
-			[typeof(Services.RootObject)] = 600
+			[typeof(Services.RootObject)] = 600,
+			[typeof(Info.PcfInfo)] = 3600,
+			[typeof(LoginInfo.PcfLoginInfo)] = 3600
 		};
 
 		public List<PcfAppInfo> GetAllApps(string container)
@@ -209,7 +211,7 @@ namespace PcfProvider
 		/// <typeparam name="TRoot">This is the type of the root object.</typeparam>
 		/// <typeparam name="TInfo">This is the type of the information contained in the root object.</typeparam>
 		/// <param name="function">This is the function that retrieves the root object.</param>
-		/// <param name="lifetimeSeconds">This is the lifetime (in seconds) of the root object.</param>
+		/// <param name="callerName">This is the name of the calling method.</param>
 		/// <returns>This is a current instance of the root object.</returns>
 		/// <remarks>
 		///     <para>
@@ -242,10 +244,48 @@ namespace PcfProvider
 			return rootObject;
 		}
 
+		/// <summary>
+		///     This method gets the root object from a cache.
+		/// </summary>
+		/// <typeparam name="TRoot">This is the type of the root object.</typeparam>
+		/// <param name="function">This is the function that retrieves the root object.</param>
+		/// <param name="callerName">This is the name of the calling method.</param>
+		/// <returns>This is a current instance of the root object.</returns>
+		/// <remarks>
+		///     <para>
+		///         Note 1: <see cref="RootObjectLifetimeInSeconds" /> contains the lifetime (in seconds) for each root object type managed by the
+		///         cache. If there is no entry, 30 seconds is used.
+		///     </para>
+		/// </remarks>
+		private TRoot GetFromCache<TRoot>(Func<TRoot> function, [CallerMemberName]string callerName = "") where TRoot : InfoBase.RootObjectSimple<TRoot>
+
+		{
+			var rootType = typeof(TRoot);
+			if (CachedRootObjects.ContainsKey(rootType) && (CachedRootObjects[rootType] as TRoot).UtcExpiration > DateTime.UtcNow)
+			{
+				Tracer.WriteLineIndent($"Reusing contents of {rootType}.", callerName);
+				return CachedRootObjects[rootType] as TRoot;
+			}
+			Tracer.WriteLineIndent($"Populating contents of {rootType}.", callerName);
+			var rootObject = function();
+			// Note 1
+			var lifetimeSeconds = RootObjectLifetimeInSeconds.ContainsKey(rootType) ? RootObjectLifetimeInSeconds[rootType] : 30;
+			rootObject.UtcExpiration = DateTime.UtcNow.AddSeconds(lifetimeSeconds);
+			if (CachedRootObjects.ContainsKey(rootType))
+			{
+				CachedRootObjects[rootType] = rootObject;
+			}
+			else
+			{
+				CachedRootObjects.Add(rootType, rootObject);
+			}
+			return rootObject;
+		}
+
 		private OAuthResponse GetOauthReponse(string data)
 		{
-			var pcfInfo = JsonConvert.DeserializeObject<Info.PcfInfo>(GetRestResponse($"http://api.{Uri}", "/v2/info"));
-			var loginInfo = JsonConvert.DeserializeObject<LoginInfo.PcfLoginInfo>(GetRestResponse(pcfInfo.AuthorizationEndpoint, "/login"));
+			var pcfInfo = GetFromCache(() => JsonConvert.DeserializeObject<Info.PcfInfo>(GetRestResponse($"http://api.{Uri}", "/v2/info")));
+			var loginInfo = GetFromCache(() => JsonConvert.DeserializeObject<LoginInfo.PcfLoginInfo>(GetRestResponse(pcfInfo.AuthorizationEndpoint, "/login")));
 			var uri = IsLocal
 				? $"http://login.{Uri}/oauth/token"
 				: $"{loginInfo.Links.Login}/oauth/token";
