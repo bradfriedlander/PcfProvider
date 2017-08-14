@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{70F58791-4
 		docs\LICENSE.md = docs\LICENSE.md
 	EndProjectSection
 EndProject
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "PcfProviderSetup64", "PcfProviderSetup\PcfProviderSetup64.wixproj", "{EAEC36D4-D9E8-4F6B-9630-097B3C6CDE1F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,7 +32,9 @@ Global
 		{D9DA230C-1487-4FE4-A5D2-6F71325262BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D9DA230C-1487-4FE4-A5D2-6F71325262BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9DA230C-1487-4FE4-A5D2-6F71325262BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D9DA230C-1487-4FE4-A5D2-6F71325262BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAEC36D4-D9E8-4F6B-9630-097B3C6CDE1F}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{EAEC36D4-D9E8-4F6B-9630-097B3C6CDE1F}.Debug|Any CPU.Build.0 = Debug|x86
+		{EAEC36D4-D9E8-4F6B-9630-097B3C6CDE1F}.Release|Any CPU.ActiveCfg = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

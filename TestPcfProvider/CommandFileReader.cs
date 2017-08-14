@@ -30,9 +30,9 @@ namespace TestPcfProvider
 		{
 			return new List<string> {
 				"Get-ChildItem",
-				@"Import-Module -Name '.\PcfProvider.dll'",
+				@"Import-Module -Name '.\PcfProvider'",
 				"Get-PSProvider",
-				"New-PSDrive PCF -PSProvider 'PCFPSProvider' -Root 'api.pivotal.io'"
+				"New-PSDrive PCF -PSProvider 'Pcf' -Root '\' -Uri run.pivotal.io -UserName (Get-Content 'user.txt') -Password (Get-Content 'password.txt') #-IsLogItems"
 			};
 		}
 	}
