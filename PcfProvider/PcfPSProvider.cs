@@ -10,6 +10,7 @@ using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
 using PcfDomainInfo = PcfProvider.Domains.PcfDomainInfo;
 using PcfManagerInfo = PcfProvider.Managers.PcfManagerInfo;
 using PcfRouteInfo = PcfProvider.Routes.PcfRouteInfo;
+using PcfRouteMapping = PcfProvider.RouteMappings.PcfRouteMapping;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
@@ -41,6 +42,7 @@ namespace PcfProvider
 		private const string managersSubcategory = "managers";
 		private const string orgsCategory = "organizations";
 		private const string plansSubcategory = "plans";
+		private const string routeMappingsCategory = "routeMappings";
 		private const string routesCategory = "routes";
 		private const string routesSubcategory = "routes";
 		private const string serviceBindingsSubcategory = "serviceBindings";
@@ -52,6 +54,7 @@ namespace PcfProvider
 			appsCategory,
 			orgsCategory,
 			routesCategory,
+			routeMappingsCategory,
 			servicesCategory
 		};
 
@@ -165,6 +168,17 @@ namespace PcfProvider
 								if (recurse)
 								{
 									GetChildItems(MakeChildPathname(path, ri.Name), recurse);
+								}
+							});
+							break;
+
+						case routeMappingsCategory:
+							GetRouteMappings(pathParts.category).ForEach(rm =>
+							{
+								WriteItemObject(rm, path, true);
+								if (recurse)
+								{
+									GetChildItems(MakeChildPathname(path, rm.Name), recurse);
 								}
 							});
 							break;
@@ -285,6 +299,10 @@ namespace PcfProvider
 							GetRoutes(pathParts.category).ForEach(ri => WriteItemObject(ri.Name, path, false));
 							break;
 
+						case routeMappingsCategory:
+							GetRouteMappings(pathParts.category).ForEach(rm => WriteItemObject(rm.Name, path, false));
+							break;
+
 						case servicesCategory:
 							GetServices(pathParts.category).ForEach(si => WriteItemObject(si.Name, path, true));
 							break;
@@ -378,6 +396,10 @@ namespace PcfProvider
 
 						case routesCategory:
 							GetRoutes(pathParts.category).Where(ri => ri.Name == pathParts.entityName).ToList().ForEach(ri => WriteItemObject(ri, path, false));
+							break;
+
+						case routeMappingsCategory:
+							GetRouteMappings(pathParts.category).Where(rm => rm.Name == pathParts.entityName).ToList().ForEach(rm => WriteItemObject(rm, path, false));
 							break;
 
 						case servicesCategory:
@@ -797,6 +819,8 @@ namespace PcfProvider
 			var subEntity = count > 3 ? containers.ContainerNames[3] : "";
 			return (containers.ContainerNames, level, count, category, containerName, entityName, subCategory, subEntity);
 		}
+
+		private List<PcfRouteMapping> GetRouteMappings(string container) => currentDriveInfo.Connection.GetAllRouteMappings(container);
 
 		private List<PcfRouteInfo> GetRoutes(string container) => currentDriveInfo.Connection.GetAllRoutes(container);
 

@@ -5,7 +5,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace PcfProvider.ServiceBindings
 {
-	public class PcfServiceBinding
+	public class PcfServiceBinding : InfoBase.PcfInfo
 	{
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public Guid AppGuid { get; set; }
@@ -23,6 +23,9 @@ namespace PcfProvider.ServiceBindings
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string GatewayName { get; set; }
+
+		[JsonIgnore]
+		public override string Name { get; set; }
 
 		[JsonIgnore()]
 		public ServiceInstance.PcfServiceInstance ServiceInstance { get; set; }

@@ -10,7 +10,7 @@ namespace PcfProvider.InfoBase
 	/// </summary>
 	/// <typeparam name="T">This is the type of the info returned in the response.</typeparam>
 	[JsonObject(NamingStrategyType = typeof(CamelCaseNamingStrategy))]
-	public class RootObject<T>
+	public class RootObject<T> where T : PcfInfo
 	{
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
 		public string NextUrl { get; set; }

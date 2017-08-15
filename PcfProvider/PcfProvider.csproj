@@ -98,6 +98,8 @@
     <Compile Include="ServicePlans\RootObject.cs" />
     <Compile Include="Services\PcfServiceInfo.cs" />
     <Compile Include="Services\RootObject.cs" />
+    <Compile Include="Spaces\PcfSpaceInfo.cs" />
+    <Compile Include="Spaces\RootObject.cs" />
     <Compile Include="TraceTest.cs" />
     <Compile Include="Users\PcfUserInfo.cs" />
     <Compile Include="Users\RootObject.cs" />

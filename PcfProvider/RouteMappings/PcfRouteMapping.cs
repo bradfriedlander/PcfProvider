@@ -1,24 +1,41 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using PcfProvider.Apps;
+using PcfProvider.Routes;
 
 namespace PcfProvider.RouteMappings
 {
-	public class PcfRouteMapping
+	public class PcfRouteMapping : InfoBase.PcfInfo
 	{
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public Guid App_guid { get; set; }
+		public Guid AppGuid { get; set; }
+
+		[JsonIgnore]
+		public PcfAppInfo AppInfo { get; set; }
+
+		[JsonIgnore]
+		public string AppName { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public int? App_port { get; set; }
+		public int? AppPort { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string App_url { get; set; }
+		public string AppUrl { get; set; }
+
+		[JsonIgnore]
+		public override string Name { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public Guid Route_guid { get; set; }
+		public Guid RouteGuid { get; set; }
+
+		[JsonIgnore]
+		public PcfRouteInfo RouteInfo { get; set; }
+
+		[JsonIgnore]
+		public string RouteName { get; set; }
 
 		[JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-		public string Route_url { get; set; }
+		public string RouteUrl { get; set; }
 	}
 }

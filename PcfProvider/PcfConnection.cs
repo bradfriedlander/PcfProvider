@@ -12,6 +12,7 @@ using PcfDomainInfo = PcfProvider.Domains.PcfDomainInfo;
 using PcfManagerInfo = PcfProvider.Managers.PcfManagerInfo;
 using PcfOrganizationInfo = PcfProvider.Organizations.PcfOrganizationInfo;
 using PcfRouteInfo = PcfProvider.Routes.PcfRouteInfo;
+using PcfRouteMapping = PcfProvider.RouteMappings.PcfRouteMapping;
 using PcfServiceBinding = PcfProvider.ServiceBindings.PcfServiceBinding;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfServicePlan = PcfProvider.ServicePlans.PcfServicePlan;
@@ -66,13 +67,12 @@ namespace PcfProvider
 			[typeof(LoginInfo.PcfLoginInfo)] = 3600
 		};
 
-		public List<PcfAppInfo> GetAllApps(string container)
+		public List<PcfAppInfo> GetAllApps(string container = "apps")
 		{
 			var allApps = GetFromCache<Apps.RootObject, PcfAppInfo>(
 				() =>
 				{
 					var appsRoot = GetAllInfo<PcfAppInfo, Apps.RootObject>(container);
-					appsRoot.Resources.ForEach(r => r.Info.InstanceId = r.Metadata.Guid);
 					GetAllServiceBindings(appsRoot);
 					GetAppRoutes(appsRoot);
 					return appsRoot;
@@ -87,7 +87,26 @@ namespace PcfProvider
 			return allOrganizations.Resources.Select(r => r.Info).ToList();
 		}
 
-		public List<PcfRouteInfo> GetAllRoutes(string container)
+		public List<PcfRouteMapping> GetAllRouteMappings(string container)
+		{
+			var allRouteMappings = GetFromCache<RouteMappings.RootObject, PcfRouteMapping>(
+				() => GetAllInfo<PcfRouteMapping, RouteMappings.RootObject>(container, "/v2/route_mappings"));
+			var allApps = GetAllApps();
+			var allRoutes = GetAllRoutes();
+			allRouteMappings.Resources.ForEach(r =>
+			{
+				var routeMapping = r.Info;
+				var matchingApp = allApps.Find(ai => ai.InstanceId == routeMapping.AppGuid);
+				routeMapping.AppInfo = matchingApp;
+				routeMapping.AppName = matchingApp?.Name;
+				var matchingRoute = allRoutes.Find(ri => ri.InstanceId == routeMapping.RouteGuid);
+				routeMapping.RouteInfo = matchingRoute;
+				routeMapping.RouteName = matchingRoute?.Name;
+			});
+			return allRouteMappings.Resources.Select(r => r.Info).ToList();
+		}
+
+		public List<PcfRouteInfo> GetAllRoutes(string container = "routes")
 		{
 			var allRoutes = GetFromCache<Routes.RootObject, PcfRouteInfo>(
 				() => GetAllInfo<PcfRouteInfo, Routes.RootObject>(container));
@@ -124,12 +143,6 @@ namespace PcfProvider
 			SaveAuthorization(authenticationResults);
 		}
 
-		internal List<TInfo> GetAll<TInfo, TRoot>(string container, string uri = "") where TRoot : InfoBase.RootObject<TInfo>
-		{
-			var allInfo = GetAllInfo<TInfo, TRoot>(container, uri);
-			return allInfo.Resources.Select(r => r.Info).ToList();
-		}
-
 		internal List<PcfDomainInfo> GetAllDomains(string organization)
 		{
 			var orgs = GetAllOrganizations("organizations");
@@ -146,10 +159,20 @@ namespace PcfProvider
 				.ToList();
 		}
 
-		internal TRoot GetAllInfo<TInfo, TRoot>(string container, string uri = "") where TRoot : InfoBase.RootObject<TInfo>
+		internal TRoot GetAllInfo<TInfo, TRoot>(string container, string uri = "") where TRoot : InfoBase.RootObject<TInfo> where TInfo : InfoBase.PcfInfo
 		{
 			var rawInfo = GetRawContainerContents(container, uri);
-			return JsonConvert.DeserializeObject<TRoot>(rawInfo);
+			var info = JsonConvert.DeserializeObject<TRoot>(rawInfo);
+			info.Resources.ForEach(r =>
+			{
+				r.SetInstanceId();
+				if (string.IsNullOrEmpty(r.Info.Name))
+				{
+					r.Info.Name = r.Info.InstanceId.ToString();
+				}
+			});
+			info.Resources = info.Resources.OrderBy(r => r.Info.Name).ToList();
+			return info;
 		}
 
 		internal List<PcfManagerInfo> GetAllManagers(string organization)
@@ -230,7 +253,7 @@ namespace PcfProvider
 		///         cache. If there is no entry, 30 seconds is used.
 		///     </para>
 		/// </remarks>
-		private TRoot GetFromCache<TRoot, TInfo>(Func<TRoot> function, [CallerMemberName]string callerName = "") where TRoot : InfoBase.RootObject<TInfo>
+		private TRoot GetFromCache<TRoot, TInfo>(Func<TRoot> function, [CallerMemberName]string callerName = "") where TRoot : InfoBase.RootObject<TInfo> where TInfo : InfoBase.PcfInfo
 
 		{
 			var rootType = typeof(TRoot);

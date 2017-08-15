@@ -21,7 +21,9 @@ echo "gci .\services | ft Name,Active,InstanceId,Description"
 gci .\services | ft Name,Active,InstanceId,Description
 echo "gci .\organizations | ft Name,Status"
 gci .\organizations | ft Name,Status
+echo "gi .\services\*\plans\* | fl"
+gi .\services\*\plans\* | fl
 echo "gci .\services\*\plans\* | ft"
 gci .\services\*\plans\* | ft
-echo "gci .\services\*\plans\* | fl"
-gi .\services\*\plans\* | fl
+echo "gci .\routeMappings | fl"
+gci .\routeMappings | fl

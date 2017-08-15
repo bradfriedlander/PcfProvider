@@ -181,5 +181,59 @@
 				</ListEntries>
 			</ListControl>
 		</View>
+		<!-- ### PcfProvider.Routes.PcfRouteInfo ###-->
+		<View>
+			<Name>DefaultPcfRouteInfo</Name>
+			<ViewSelectedBy>
+				<Typename>PcfProvider.Routes.PcfRouteInfo</Typename>
+			</ViewSelectedBy>
+			<ListControl>
+				<ListEntries>
+					<ListEntry>
+						<ListItems>
+							<ListItem>
+								<PropertyName>Name</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>Path</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>Port</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>DomainGuid</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>SpaceGuid</PropertyName>
+							</ListItem>
+						</ListItems>
+					</ListEntry>
+				</ListEntries>
+			</ListControl>
+		</View>
+		<!-- ### PcfProvider.RouteMappings.PcfRouteMapping ###-->
+		<View>
+			<Name>DefaultPcfRouteMapping</Name>
+			<ViewSelectedBy>
+				<Typename>PcfProvider.RouteMappings.PcfRouteMapping</Typename>
+			</ViewSelectedBy>
+			<ListControl>
+				<ListEntries>
+					<ListEntry>
+						<ListItems>
+							<ListItem>
+								<PropertyName>Name</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>AppName</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>RouteName</PropertyName>
+							</ListItem>
+						</ListItems>
+					</ListEntry>
+				</ListEntries>
+			</ListControl>
+		</View>
 	</ViewDefinitions>
 </Configuration>
