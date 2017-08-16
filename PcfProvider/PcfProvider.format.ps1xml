@@ -235,5 +235,26 @@
 				</ListEntries>
 			</ListControl>
 		</View>
+		<!-- ### PcfProvider.Spaces.PcfSpaceInfo ###-->
+		<View>
+			<Name>DefaultPcfSpaceInfo</Name>
+			<ViewSelectedBy>
+				<Typename>PcfProvider.Spaces.PcfSpaceInfo</Typename>
+			</ViewSelectedBy>
+			<ListControl>
+				<ListEntries>
+					<ListEntry>
+						<ListItems>
+							<ListItem>
+								<PropertyName>Name</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>OrganizationGuid</PropertyName>
+							</ListItem>
+						</ListItems>
+					</ListEntry>
+				</ListEntries>
+			</ListControl>
+		</View>
 	</ViewDefinitions>
 </Configuration>

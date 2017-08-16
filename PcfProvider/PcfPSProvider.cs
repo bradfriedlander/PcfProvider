@@ -9,9 +9,11 @@ using System.Text.RegularExpressions;
 using PcfAppInfo = PcfProvider.Apps.PcfAppInfo;
 using PcfDomainInfo = PcfProvider.Domains.PcfDomainInfo;
 using PcfManagerInfo = PcfProvider.Managers.PcfManagerInfo;
+using PcfOrganizationInfo = PcfProvider.Organizations.PcfOrganizationInfo;
 using PcfRouteInfo = PcfProvider.Routes.PcfRouteInfo;
 using PcfRouteMapping = PcfProvider.RouteMappings.PcfRouteMapping;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
+using PcfSpaceInfo = PcfProvider.Spaces.PcfSpaceInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
 namespace PcfProvider
@@ -47,6 +49,8 @@ namespace PcfProvider
 		private const string routesSubcategory = "routes";
 		private const string serviceBindingsSubcategory = "serviceBindings";
 		private const string servicesCategory = "services";
+		private const string spacesCategory = "spaces";
+		private const string spacesSubcategory = "orgainizationSpaces";
 		private const string usersSubcategory = "users";
 
 		private static readonly string[] categoryNames = new string[]
@@ -55,21 +59,61 @@ namespace PcfProvider
 			orgsCategory,
 			routesCategory,
 			routeMappingsCategory,
-			servicesCategory
+			servicesCategory,
+			spacesCategory
+		};
+
+		private static readonly Dictionary<string, CategoryTypes> categoryTypes = new Dictionary<string, CategoryTypes>()
+		{
+			[appsCategory] = new CategoryTypes()
+			{
+				InfoType = typeof(PcfAppInfo),
+				RootType = typeof(InfoBase.RootObject<PcfAppInfo>)
+			},
+			[orgsCategory] = new CategoryTypes()
+			{
+				InfoType = typeof(PcfOrganizationInfo),
+				RootType = typeof(InfoBase.RootObject<PcfOrganizationInfo>)
+			},
+			[routesCategory] = new CategoryTypes()
+			{
+				InfoType = typeof(PcfRouteInfo),
+				RootType = typeof(InfoBase.RootObject<PcfRouteInfo>)
+			},
+			[routeMappingsCategory] = new CategoryTypes()
+			{
+				InfoType = typeof(PcfRouteMapping),
+				RootType = typeof(InfoBase.RootObject<PcfRouteMapping>)
+			},
+			[servicesCategory] = new CategoryTypes()
+			{
+				InfoType = typeof(PcfServiceInfo),
+				RootType = typeof(InfoBase.RootObject<PcfServiceInfo>)
+			},
+			[spacesCategory] = new CategoryTypes()
+			{
+				InfoType = typeof(PcfSpaceInfo),
+				RootType = typeof(InfoBase.RootObject<PcfSpaceInfo>)
+			}
 		};
 
 		private static readonly Dictionary<string, string[]> subCategoryNames = new Dictionary<string, string[]>
 		{
 			[appsCategory] = new string[] { routesSubcategory, serviceBindingsSubcategory },
-			[orgsCategory] = new string[] { domainsSubcategory, managersSubcategory, usersSubcategory },
+			[orgsCategory] = new string[] { domainsSubcategory, managersSubcategory, spacesSubcategory, usersSubcategory },
 			[servicesCategory] = new string[] { plansSubcategory }
 		};
 
 		private static PcfDriveInfo currentDriveInfo;
+
 		private static bool isLogItems;
+
 		private static string password;
+
 		private static string uri;
+
 		private static string userName;
+
 		private readonly TraceTest _trace = new TraceTest("PS", nameof(PcfPSProvider));
 
 		public void ClearContent(string path)
@@ -193,6 +237,17 @@ namespace PcfProvider
 								}
 							});
 							break;
+
+						case spacesCategory:
+							GetSpaces(pathParts.category).ForEach(si =>
+							{
+								WriteItemObject(si, path, true);
+								if (recurse)
+								{
+									GetChildItems(MakeChildPathname(path, si.Name), recurse);
+								}
+							});
+							break;
 					}
 					break;
 
@@ -245,6 +300,13 @@ namespace PcfProvider
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance).ToList())
 									.ToList();
 								RecurseForName(services, path, recurse);
+								break;
+
+							case spacesSubcategory:
+								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
+								var orgId = org?.InstanceId;
+								var spaces = GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId).ToList();
+								RecurseForName(spaces, path, recurse);
 								break;
 
 							case usersSubcategory:
@@ -306,6 +368,10 @@ namespace PcfProvider
 						case servicesCategory:
 							GetServices(pathParts.category).ForEach(si => WriteItemObject(si.Name, path, true));
 							break;
+
+						case spacesCategory:
+							GetSpaces(pathParts.category).ForEach(si => WriteItemObject(si.Name, path, false));
+							break;
 					}
 					break;
 
@@ -351,6 +417,14 @@ namespace PcfProvider
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
 									.ToList();
 								services.ForEach(s => s.ToList().ForEach(si => WriteItemObject(si.Name, path, false)));
+								break;
+
+							case spacesSubcategory:
+								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
+								var orgId = org?.InstanceId;
+								GetSpaces(spacesCategory)
+									.FindAll(si => si.OrganizationGuid == orgId)
+									.ForEach(si => WriteItemObject(si.Name, path, false));
 								break;
 
 							case usersSubcategory:
@@ -405,6 +479,10 @@ namespace PcfProvider
 						case servicesCategory:
 							GetServices(pathParts.category).Where(si => si.Name == pathParts.entityName).ToList().ForEach(si => WriteItemObject(si, path, false));
 							break;
+
+						case spacesCategory:
+							GetSpaces(pathParts.category).Where(si => si.Name == pathParts.entityName).ToList().ForEach(si => WriteItemObject(si, path, false));
+							break;
 					}
 					break;
 
@@ -450,6 +528,14 @@ namespace PcfProvider
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
 									.ToList();
 								services.ForEach(s => s.ToList().FindAll(si => si.Name == pathParts.subEntity).ForEach(si => WriteItemObject(si, path, false)));
+								break;
+
+							case spacesSubcategory:
+								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
+								var orgId = org?.InstanceId;
+								GetSpaces(spacesCategory)
+									.FindAll(si => si.OrganizationGuid == orgId)
+									.ForEach(si => WriteItemObject(si, path, false));
 								break;
 
 							case usersSubcategory:
@@ -567,6 +653,9 @@ namespace PcfProvider
 
 						case servicesCategory:
 							return LogReturn(() => GetServices(pathParts.category).Any(si => pathParts.entityName == si.Name));
+
+						case spacesCategory:
+							return LogReturn(() => GetSpaces(pathParts.category).Any(ri => pathParts.entityName == ri.Name));
 					}
 					break;
 
@@ -601,6 +690,11 @@ namespace PcfProvider
 									.Where(ai => ai.Name == pathParts.entityName)
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance));
 								return LogReturn(() => services.Any(s => s.Any(si => si.Name == pathParts.subEntity)));
+
+							case spacesSubcategory:
+								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
+								var orgId = org?.InstanceId;
+								return LogReturn(() => GetSpaces(spacesCategory).Any(si => si.OrganizationGuid == orgId));
 
 							case usersSubcategory:
 								return LogReturn(() => GetUsers(pathParts.entityName).Any(ui => ui.Name == pathParts.subEntity));
@@ -826,6 +920,8 @@ namespace PcfProvider
 
 		private List<PcfServiceInfo> GetServices(string container) => currentDriveInfo.Connection.GetAllServices(container);
 
+		private List<PcfSpaceInfo> GetSpaces(string container) => currentDriveInfo.Connection.GetAllSpaces(container);
+
 		private List<PcfUserInfo> GetUsers(string organization) => currentDriveInfo.Connection.GetAllUsers(organization);
 
 		private T LogReturn<T>(Func<T> function, [CallerMemberName]string callerName = "")
@@ -887,6 +983,13 @@ namespace PcfProvider
 		private void WriteErrorRecord(Exception exception, string message, ErrorCategory category, object target)
 		{
 			WriteError(new ErrorRecord(exception, message, category, target));
+		}
+
+		public class CategoryTypes
+		{
+			public Type InfoType { get; set; }
+
+			public Type RootType { get; set; }
 		}
 	}
 }

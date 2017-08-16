@@ -16,6 +16,7 @@ using PcfRouteMapping = PcfProvider.RouteMappings.PcfRouteMapping;
 using PcfServiceBinding = PcfProvider.ServiceBindings.PcfServiceBinding;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfServicePlan = PcfProvider.ServicePlans.PcfServicePlan;
+using PcfSpaceInfo = PcfProvider.Spaces.PcfSpaceInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
 namespace PcfProvider
@@ -64,7 +65,8 @@ namespace PcfProvider
 			[typeof(Routes.RootObject)] = 30,
 			[typeof(Services.RootObject)] = 600,
 			[typeof(Info.PcfInfo)] = 3600,
-			[typeof(LoginInfo.PcfLoginInfo)] = 3600
+			[typeof(LoginInfo.PcfLoginInfo)] = 3600,
+			[typeof(Spaces.RootObject)]= 3600
 		};
 
 		public List<PcfAppInfo> GetAllApps(string container = "apps")
@@ -135,6 +137,13 @@ namespace PcfProvider
 						return servicesRoot;
 					});
 			return allServices.Resources.Select(r => r.Info).ToList();
+		}
+
+		public List<PcfSpaceInfo> GetAllSpaces(string container)
+		{
+			var allSpaces = GetFromCache<Spaces.RootObject, PcfSpaceInfo>(
+				() => GetAllInfo<PcfSpaceInfo, Spaces.RootObject>(container));
+			return allSpaces.Resources.Select(r => r.Info).ToList();
 		}
 
 		public void Login(string username, string password)
