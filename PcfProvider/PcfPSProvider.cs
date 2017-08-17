@@ -336,7 +336,7 @@ namespace PcfProvider
 									.Where(ai => ai.Name == pathParts.entityName)
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
 									.ToList();
-								services.ForEach(s=>WriteAllItemNames(s, path));
+								services.ForEach(s => WriteAllItemNames(s, path));
 								break;
 
 							case spacesSubcategory:
@@ -356,13 +356,7 @@ namespace PcfProvider
 					break;
 			}
 		}
-		private void WriteAllItemNames(IEnumerable<InfoBase.PcfInfo> items, string path, bool isContainer=false)
-		{
-			foreach (var item in items)
-			{
-				WriteItemObject(item.Name, path, isContainer);
-			}
-		}
+
 		protected override void GetItem(string path)
 		{
 			_trace.WriteLine($"Entering {nameof(GetItem)}({path})");
@@ -382,31 +376,9 @@ namespace PcfProvider
 					break;
 
 				case PathType.PcfEntity:
-					switch (pathParts.category)
+					foreach (var entity in GetFunctionForCategory(pathParts.category)().Where(ai => ai.Name == pathParts.entityName))
 					{
-						case appsCategory:
-							GetApps(pathParts.category).Where(ai => ai.Name == pathParts.entityName).ToList().ForEach(ai => WriteItemObject(ai, path, false));
-							break;
-
-						case orgsCategory:
-							GetOrganizations(pathParts.category).Where(oi => oi.Name == pathParts.entityName).ToList().ForEach(oi => WriteItemObject(oi, path, true));
-							break;
-
-						case routesCategory:
-							GetRoutes(pathParts.category).Where(ri => ri.Name == pathParts.entityName).ToList().ForEach(ri => WriteItemObject(ri, path, false));
-							break;
-
-						case routeMappingsCategory:
-							GetRouteMappings(pathParts.category).Where(rm => rm.Name == pathParts.entityName).ToList().ForEach(rm => WriteItemObject(rm, path, false));
-							break;
-
-						case servicesCategory:
-							GetServices(pathParts.category).Where(si => si.Name == pathParts.entityName).ToList().ForEach(si => WriteItemObject(si, path, false));
-							break;
-
-						case spacesCategory:
-							GetSpaces(pathParts.category).Where(si => si.Name == pathParts.entityName).ToList().ForEach(si => WriteItemObject(si, path, false));
-							break;
+						WriteItemObject(entity, path, categoriesInfo[pathParts.category].IsContainer);
 					}
 					break;
 
@@ -564,24 +536,7 @@ namespace PcfProvider
 					return LogReturn(() => FindMatchingNames(path).Length > 0);
 
 				case PathType.PcfEntity:
-					switch (pathParts.category)
-					{
-						case appsCategory:
-							return LogReturn(() => GetApps(pathParts.category).Any(ai => pathParts.entityName == ai.Name));
-
-						case orgsCategory:
-							return LogReturn(() => GetOrganizations(pathParts.category).Any(oi => pathParts.entityName == oi.Name));
-
-						case routesCategory:
-							return LogReturn(() => GetRoutes(pathParts.category).Any(ri => pathParts.entityName == ri.Name));
-
-						case servicesCategory:
-							return LogReturn(() => GetServices(pathParts.category).Any(si => pathParts.entityName == si.Name));
-
-						case spacesCategory:
-							return LogReturn(() => GetSpaces(pathParts.category).Any(ri => pathParts.entityName == ri.Name));
-					}
-					break;
+					return LogReturn(() => GetFunctionForCategory(pathParts.category)().Any(e => pathParts.entityName == e.Name));
 
 				case PathType.PcfSubCategory:
 					return LogReturn(() => subCategoryNames.ContainsKey(pathParts.category));
@@ -912,6 +867,14 @@ namespace PcfProvider
 		}
 
 		private string RemoveDriveFromPath(string path) => path.Replace($"{currentDriveInfo.Root}:", string.Empty);
+
+		private void WriteAllItemNames(IEnumerable<InfoBase.PcfInfo> items, string path, bool isContainer = false)
+		{
+			foreach (var item in items)
+			{
+				WriteItemObject(item.Name, path, isContainer);
+			}
+		}
 
 		/// <summary>
 		///     Writes the error record.
