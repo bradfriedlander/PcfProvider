@@ -59,42 +59,48 @@ namespace PcfProvider
 			{
 				InfoType = typeof(PcfAppInfo),
 				RootType = typeof(InfoBase.RootObject<PcfAppInfo>),
-				Function = () => GetApps()
+				Function = () => GetApps(),
+				IsContainer = true
 			},
 			[orgsCategory] = new CategoryInfo()
 			{
 				InfoType = typeof(PcfOrganizationInfo),
 				RootType = typeof(InfoBase.RootObject<PcfOrganizationInfo>),
-				Function = () => GetOrganizations()
+				Function = () => GetOrganizations(),
+				IsContainer = true
 			},
 			[routesCategory] = new CategoryInfo()
 			{
 				InfoType = typeof(PcfRouteInfo),
 				RootType = typeof(InfoBase.RootObject<PcfRouteInfo>),
-				Function = () => GetRoutes()
+				Function = () => GetRoutes(),
+				IsContainer = false
 			},
 			[routeMappingsCategory] = new CategoryInfo()
 			{
 				InfoType = typeof(PcfRouteMapping),
 				RootType = typeof(InfoBase.RootObject<PcfRouteMapping>),
-				Function = () => GetRouteMappings()
+				Function = () => GetRouteMappings(),
+				IsContainer = false
 			},
 			[servicesCategory] = new CategoryInfo()
 			{
 				InfoType = typeof(PcfServiceInfo),
 				RootType = typeof(InfoBase.RootObject<PcfServiceInfo>),
-				Function = () => GetServices()
+				Function = () => GetServices(),
+				IsContainer = true
 			},
 			[spacesCategory] = new CategoryInfo()
 			{
 				InfoType = typeof(PcfSpaceInfo),
 				RootType = typeof(InfoBase.RootObject<PcfSpaceInfo>),
-				Function = () => GetSpaces()
+				Function = () => GetSpaces(),
+				IsContainer = false
 			}
 		};
 
 		private static readonly string[] categoryNames = new string[]
-				{
+		{
 			appsCategory,
 			orgsCategory,
 			routesCategory,
@@ -187,16 +193,7 @@ namespace PcfProvider
 					break;
 
 				case PathType.Category:
-					if (!categoriesInfo.ContainsKey(pathParts.category))
-					{
-						WriteErrorRecord(
-							new ArgumentNullException(nameof(pathParts.category)),
-							$"'{pathParts.category}' is an unsupported category",
-							ErrorCategory.InvalidArgument,
-							null);
-						break;
-					}
-					RecurseForName(categoriesInfo[pathParts.category].Function(), path, recurse);
+					RecurseForName(GetFunctionForCategory(pathParts.category)(), path, recurse);
 					break;
 
 				case PathType.PcfEntity:
@@ -229,31 +226,28 @@ namespace PcfProvider
 							case plansSubcategory:
 								var plans = GetServices(pathParts.category)
 									.Where(s => s.Name == pathParts.entityName)
-									.Select(s => s.Plans.Select(p => p).ToList())
-									.ToList();
+									.Select(s => s.Plans.Select(p => p));
 								RecurseForName(plans, path, recurse);
 								break;
 
 							case routesSubcategory:
 								var appRoutes = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
-									.Select(ai => ai.Routes.Select(p => p).ToList())
-									.ToList();
+									.Select(ai => ai.Routes.Select(p => p));
 								RecurseForName(appRoutes, path, recurse);
 								break;
 
 							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
-									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance).ToList())
-									.ToList();
+									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance));
 								RecurseForName(services, path, recurse);
 								break;
 
 							case spacesSubcategory:
 								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
 								var orgId = org?.InstanceId;
-								var spaces = GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId).ToList();
+								var spaces = GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId);
 								RecurseForName(spaces, path, recurse);
 								break;
 
@@ -295,31 +289,9 @@ namespace PcfProvider
 					break;
 
 				case PathType.Category:
-					switch (pathParts.category)
+					foreach (var e in GetFunctionForCategory(pathParts.category)())
 					{
-						case appsCategory:
-							GetApps(pathParts.category).ForEach(ai => WriteItemObject(ai.Name, path, true));
-							break;
-
-						case orgsCategory:
-							GetOrganizations(pathParts.category).ForEach(oi => WriteItemObject(oi.Name, path, true));
-							break;
-
-						case routesCategory:
-							GetRoutes(pathParts.category).ForEach(ri => WriteItemObject(ri.Name, path, false));
-							break;
-
-						case routeMappingsCategory:
-							GetRouteMappings(pathParts.category).ForEach(rm => WriteItemObject(rm.Name, path, false));
-							break;
-
-						case servicesCategory:
-							GetServices(pathParts.category).ForEach(si => WriteItemObject(si.Name, path, true));
-							break;
-
-						case spacesCategory:
-							GetSpaces(pathParts.category).ForEach(si => WriteItemObject(si.Name, path, false));
-							break;
+						WriteItemObject(e.Name, path, categoriesInfo[pathParts.category].IsContainer);
 					}
 					break;
 
@@ -859,6 +831,20 @@ namespace PcfProvider
 			return ((PathType)(containerNames.Length), containerNames);
 		}
 
+		private Func<IEnumerable<InfoBase.PcfInfo>> GetFunctionForCategory(string category)
+		{
+			if (!categoriesInfo.ContainsKey(category))
+			{
+				WriteErrorRecord(
+					new ArgumentNullException(nameof(category)),
+					$"'{category}' is an unsupported category",
+					ErrorCategory.InvalidArgument,
+					null);
+				return () => new List<InfoBase.PcfInfo>();
+			}
+			return categoriesInfo[category].Function;
+		}
+
 		private (string[] containerNames, PathType level, int count, string category, string containerName, string entityName, string subCategory, string subEntity) GetPathParts(string path)
 		{
 			var containers = GetContainerNames(path);
@@ -940,6 +926,8 @@ namespace PcfProvider
 			public Func<IEnumerable<InfoBase.PcfInfo>> Function { get; set; }
 
 			public Type InfoType { get; set; }
+
+			public bool IsContainer { get; set; }
 
 			public Type RootType { get; set; }
 		}
