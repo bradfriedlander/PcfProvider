@@ -308,27 +308,27 @@ namespace PcfProvider
 						switch (pathParts.subCategory)
 						{
 							case domainsSubcategory:
-								GetDomains(pathParts.entityName).ForEach(di => WriteItemObject(di.Name, path, false));
+								WriteAllItemNames(GetDomains(pathParts.entityName), path);
 								break;
 
 							case managersSubcategory:
-								GetManagers(pathParts.entityName).ForEach(mi => WriteItemObject(mi.Name, path, false));
+								WriteAllItemNames(GetManagers(pathParts.entityName), path);
 								break;
 
 							case plansSubcategory:
 								var plans = GetServices(pathParts.category)
 									.Where(s => s.Name == pathParts.entityName)
-									.Select(s => s.Plans.Select(p => p).ToList())
+									.Select(s => s.Plans.Select(p => p))
 									.ToList();
-								plans.ForEach(ps => ps.ForEach(p => WriteItemObject(p.Name, path, false)));
+								plans.ForEach(ps => WriteAllItemNames(ps, path));
 								break;
 
 							case routesSubcategory:
 								var appRoutes = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
-									.Select(ai => ai.Routes.Select(p => p).ToList())
+									.Select(ai => ai.Routes.Select(p => p))
 									.ToList();
-								appRoutes.ForEach(ar => ar.ForEach(r => WriteItemObject(r.Name, path, false)));
+								appRoutes.ForEach(ar => WriteAllItemNames(ar, path));
 								break;
 
 							case serviceBindingsSubcategory:
@@ -336,19 +336,17 @@ namespace PcfProvider
 									.Where(ai => ai.Name == pathParts.entityName)
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
 									.ToList();
-								services.ForEach(s => s.ToList().ForEach(si => WriteItemObject(si.Name, path, false)));
+								services.ForEach(s=>WriteAllItemNames(s, path));
 								break;
 
 							case spacesSubcategory:
 								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
 								var orgId = org?.InstanceId;
-								GetSpaces(spacesCategory)
-									.FindAll(si => si.OrganizationGuid == orgId)
-									.ForEach(si => WriteItemObject(si.Name, path, false));
+								WriteAllItemNames(GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId), path);
 								break;
 
 							case usersSubcategory:
-								GetUsers(pathParts.entityName).ForEach(ui => WriteItemObject(ui.Name, path, false));
+								WriteAllItemNames(GetUsers(pathParts.entityName), path);
 								break;
 						}
 					}
@@ -358,7 +356,13 @@ namespace PcfProvider
 					break;
 			}
 		}
-
+		private void WriteAllItemNames(IEnumerable<InfoBase.PcfInfo> items, string path, bool isContainer=false)
+		{
+			foreach (var item in items)
+			{
+				WriteItemObject(item.Name, path, isContainer);
+			}
+		}
 		protected override void GetItem(string path)
 		{
 			_trace.WriteLine($"Entering {nameof(GetItem)}({path})");
