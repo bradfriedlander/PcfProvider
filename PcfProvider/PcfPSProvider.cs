@@ -184,69 +184,27 @@ namespace PcfProvider
 					switch (pathParts.category)
 					{
 						case appsCategory:
-							GetApps(pathParts.category).ForEach(ai =>
-							{
-								WriteItemObject(ai, path, true);
-								if (recurse)
-								{
-									GetChildItems(MakeChildPathname(path, ai.Name), recurse);
-								}
-							});
+							RecurseForName(GetApps(pathParts.category), path, recurse);
 							break;
 
 						case orgsCategory:
-							GetOrganizations(pathParts.category).ForEach(oi =>
-							{
-								WriteItemObject(oi, path, true);
-								if (recurse)
-								{
-									GetChildItems(MakeChildPathname(path, oi.Name), recurse);
-								}
-							});
+							RecurseForName(GetOrganizations(pathParts.category), path, recurse);
 							break;
 
 						case routesCategory:
-							GetRoutes(pathParts.category).ForEach(ri =>
-							{
-								WriteItemObject(ri, path, true);
-								if (recurse)
-								{
-									GetChildItems(MakeChildPathname(path, ri.Name), recurse);
-								}
-							});
+							RecurseForName(GetRoutes(pathParts.category), path, recurse);
 							break;
 
 						case routeMappingsCategory:
-							GetRouteMappings(pathParts.category).ForEach(rm =>
-							{
-								WriteItemObject(rm, path, true);
-								if (recurse)
-								{
-									GetChildItems(MakeChildPathname(path, rm.Name), recurse);
-								}
-							});
+							RecurseForName(GetRouteMappings(pathParts.category), path, recurse);
 							break;
 
 						case servicesCategory:
-							GetServices(pathParts.category).ForEach(si =>
-							{
-								WriteItemObject(si, path, true);
-								if (recurse)
-								{
-									GetChildItems(MakeChildPathname(path, si.Name), recurse);
-								}
-							});
+							RecurseForName(GetServices(pathParts.category), path, recurse);
 							break;
 
 						case spacesCategory:
-							GetSpaces(pathParts.category).ForEach(si =>
-							{
-								WriteItemObject(si, path, true);
-								if (recurse)
-								{
-									GetChildItems(MakeChildPathname(path, si.Name), recurse);
-								}
-							});
+							RecurseForName(GetSpaces(pathParts.category), path, recurse);
 							break;
 					}
 					break;
