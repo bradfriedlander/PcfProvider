@@ -53,48 +53,54 @@ namespace PcfProvider
 		private const string spacesSubcategory = "orgainizationSpaces";
 		private const string usersSubcategory = "users";
 
-		private static readonly string[] categoryNames = new string[]
+		private static readonly Dictionary<string, CategoryInfo> categoriesInfo = new Dictionary<string, CategoryInfo>()
 		{
+			[appsCategory] = new CategoryInfo()
+			{
+				InfoType = typeof(PcfAppInfo),
+				RootType = typeof(InfoBase.RootObject<PcfAppInfo>),
+				Function = () => GetApps()
+			},
+			[orgsCategory] = new CategoryInfo()
+			{
+				InfoType = typeof(PcfOrganizationInfo),
+				RootType = typeof(InfoBase.RootObject<PcfOrganizationInfo>),
+				Function = () => GetOrganizations()
+			},
+			[routesCategory] = new CategoryInfo()
+			{
+				InfoType = typeof(PcfRouteInfo),
+				RootType = typeof(InfoBase.RootObject<PcfRouteInfo>),
+				Function = () => GetRoutes()
+			},
+			[routeMappingsCategory] = new CategoryInfo()
+			{
+				InfoType = typeof(PcfRouteMapping),
+				RootType = typeof(InfoBase.RootObject<PcfRouteMapping>),
+				Function = () => GetRouteMappings()
+			},
+			[servicesCategory] = new CategoryInfo()
+			{
+				InfoType = typeof(PcfServiceInfo),
+				RootType = typeof(InfoBase.RootObject<PcfServiceInfo>),
+				Function = () => GetServices()
+			},
+			[spacesCategory] = new CategoryInfo()
+			{
+				InfoType = typeof(PcfSpaceInfo),
+				RootType = typeof(InfoBase.RootObject<PcfSpaceInfo>),
+				Function = () => GetSpaces()
+			}
+		};
+
+		private static readonly string[] categoryNames = new string[]
+				{
 			appsCategory,
 			orgsCategory,
 			routesCategory,
 			routeMappingsCategory,
 			servicesCategory,
 			spacesCategory
-		};
-
-		private static readonly Dictionary<string, CategoryTypes> categoryTypes = new Dictionary<string, CategoryTypes>()
-		{
-			[appsCategory] = new CategoryTypes()
-			{
-				InfoType = typeof(PcfAppInfo),
-				RootType = typeof(InfoBase.RootObject<PcfAppInfo>)
-			},
-			[orgsCategory] = new CategoryTypes()
-			{
-				InfoType = typeof(PcfOrganizationInfo),
-				RootType = typeof(InfoBase.RootObject<PcfOrganizationInfo>)
-			},
-			[routesCategory] = new CategoryTypes()
-			{
-				InfoType = typeof(PcfRouteInfo),
-				RootType = typeof(InfoBase.RootObject<PcfRouteInfo>)
-			},
-			[routeMappingsCategory] = new CategoryTypes()
-			{
-				InfoType = typeof(PcfRouteMapping),
-				RootType = typeof(InfoBase.RootObject<PcfRouteMapping>)
-			},
-			[servicesCategory] = new CategoryTypes()
-			{
-				InfoType = typeof(PcfServiceInfo),
-				RootType = typeof(InfoBase.RootObject<PcfServiceInfo>)
-			},
-			[spacesCategory] = new CategoryTypes()
-			{
-				InfoType = typeof(PcfSpaceInfo),
-				RootType = typeof(InfoBase.RootObject<PcfSpaceInfo>)
-			}
 		};
 
 		private static readonly Dictionary<string, string[]> subCategoryNames = new Dictionary<string, string[]>
@@ -181,32 +187,16 @@ namespace PcfProvider
 					break;
 
 				case PathType.Category:
-					switch (pathParts.category)
+					if (!categoriesInfo.ContainsKey(pathParts.category))
 					{
-						case appsCategory:
-							RecurseForName(GetApps(pathParts.category), path, recurse);
-							break;
-
-						case orgsCategory:
-							RecurseForName(GetOrganizations(pathParts.category), path, recurse);
-							break;
-
-						case routesCategory:
-							RecurseForName(GetRoutes(pathParts.category), path, recurse);
-							break;
-
-						case routeMappingsCategory:
-							RecurseForName(GetRouteMappings(pathParts.category), path, recurse);
-							break;
-
-						case servicesCategory:
-							RecurseForName(GetServices(pathParts.category), path, recurse);
-							break;
-
-						case spacesCategory:
-							RecurseForName(GetSpaces(pathParts.category), path, recurse);
-							break;
+						WriteErrorRecord(
+							new ArgumentNullException(nameof(pathParts.category)),
+							$"'{pathParts.category}' is an unsupported category",
+							ErrorCategory.InvalidArgument,
+							null);
+						break;
 					}
+					RecurseForName(categoriesInfo[pathParts.category].Function(), path, recurse);
 					break;
 
 				case PathType.PcfEntity:
@@ -833,14 +823,30 @@ namespace PcfProvider
 			return categoryNames.Where(fln => regex.IsMatch(fln)).Select(fln => fln).ToArray();
 		}
 
+		private static List<PcfAppInfo> GetApps(string container = appsCategory) => currentDriveInfo.Connection.GetAllApps(container);
+
+		private static List<PcfDomainInfo> GetDomains(string organization) => currentDriveInfo.Connection.GetAllDomains(organization);
+
+		private static List<PcfManagerInfo> GetManagers(string organization) => currentDriveInfo.Connection.GetAllManagers(organization);
+
+		private static List<PcfOrganizationInfo> GetOrganizations(string container = orgsCategory) => currentDriveInfo.Connection.GetAllOrganizations(container);
+
+		private static List<PcfRouteMapping> GetRouteMappings(string container = routeMappingsCategory) => currentDriveInfo.Connection.GetAllRouteMappings(container);
+
+		private static List<PcfRouteInfo> GetRoutes(string container = routesCategory) => currentDriveInfo.Connection.GetAllRoutes(container);
+
+		private static List<PcfServiceInfo> GetServices(string container = servicesCategory) => currentDriveInfo.Connection.GetAllServices(container);
+
+		private static List<PcfSpaceInfo> GetSpaces(string container = spacesCategory) => currentDriveInfo.Connection.GetAllSpaces(container);
+
+		private static List<PcfUserInfo> GetUsers(string organization) => currentDriveInfo.Connection.GetAllUsers(organization);
+
 		private static string MakeChildPathname(string parentPath, string childName)
 		{
 			return $"{parentPath.TrimEnd(new[] { '\\' })}{PcfDriveInfo.PathSeparator}{childName}";
 		}
 
 		private string FirstLevelObject(string value) => value;
-
-		private List<PcfAppInfo> GetApps(string container) => currentDriveInfo.Connection.GetAllApps(container);
 
 		private (PathType Level, string[] ContainerNames) GetContainerNames(string path)
 		{
@@ -852,12 +858,6 @@ namespace PcfProvider
 			var containerNames = path.Split(new[] { PcfDriveInfo.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
 			return ((PathType)(containerNames.Length), containerNames);
 		}
-
-		private List<PcfDomainInfo> GetDomains(string organization) => currentDriveInfo.Connection.GetAllDomains(organization);
-
-		private List<PcfManagerInfo> GetManagers(string organization) => currentDriveInfo.Connection.GetAllManagers(organization);
-
-		private List<Organizations.PcfOrganizationInfo> GetOrganizations(string container) => currentDriveInfo.Connection.GetAllOrganizations(container);
 
 		private (string[] containerNames, PathType level, int count, string category, string containerName, string entityName, string subCategory, string subEntity) GetPathParts(string path)
 		{
@@ -871,16 +871,6 @@ namespace PcfProvider
 			var subEntity = count > 3 ? containers.ContainerNames[3] : "";
 			return (containers.ContainerNames, level, count, category, containerName, entityName, subCategory, subEntity);
 		}
-
-		private List<PcfRouteMapping> GetRouteMappings(string container) => currentDriveInfo.Connection.GetAllRouteMappings(container);
-
-		private List<PcfRouteInfo> GetRoutes(string container) => currentDriveInfo.Connection.GetAllRoutes(container);
-
-		private List<PcfServiceInfo> GetServices(string container) => currentDriveInfo.Connection.GetAllServices(container);
-
-		private List<PcfSpaceInfo> GetSpaces(string container) => currentDriveInfo.Connection.GetAllSpaces(container);
-
-		private List<PcfUserInfo> GetUsers(string organization) => currentDriveInfo.Connection.GetAllUsers(organization);
 
 		private T LogReturn<T>(Func<T> function, [CallerMemberName]string callerName = "")
 		{
@@ -904,21 +894,24 @@ namespace PcfProvider
 			return false;
 		}
 
-		private void RecurseForName<TInfo>(List<List<TInfo>> entity, string path, bool recurse) where TInfo : InfoBase.PcfInfo
+		private void RecurseForName(IEnumerable<IEnumerable<InfoBase.PcfInfo>> entity, string path, bool recurse)
 		{
-			entity.ForEach(es => es.ForEach(e =>
+			foreach (var es in entity)
 			{
-				WriteItemObject(e, path, false);
-				if (recurse)
+				foreach (var e in es)
 				{
-					GetChildItems(MakeChildPathname(path, e.Name), recurse);
+					WriteItemObject(e, path, false);
+					if (recurse)
+					{
+						GetChildItems(MakeChildPathname(path, e.Name), recurse);
+					}
 				}
-			}));
+			}
 		}
 
-		private void RecurseForName<TInfo>(List<TInfo> entity, string path, bool recurse) where TInfo : InfoBase.PcfInfo
+		private void RecurseForName(IEnumerable<InfoBase.PcfInfo> entity, string path, bool recurse)
 		{
-			entity.ForEach(e =>
+			foreach (var e in entity)
 			{
 				WriteItemObject(e, path, false);
 				if (recurse)
@@ -926,7 +919,6 @@ namespace PcfProvider
 					GetChildItems(MakeChildPathname(path, e.Name), recurse);
 				}
 			}
-			);
 		}
 
 		private string RemoveDriveFromPath(string path) => path.Replace($"{currentDriveInfo.Root}:", string.Empty);
@@ -943,8 +935,10 @@ namespace PcfProvider
 			WriteError(new ErrorRecord(exception, message, category, target));
 		}
 
-		public class CategoryTypes
+		public class CategoryInfo
 		{
+			public Func<IEnumerable<InfoBase.PcfInfo>> Function { get; set; }
+
 			public Type InfoType { get; set; }
 
 			public Type RootType { get; set; }
