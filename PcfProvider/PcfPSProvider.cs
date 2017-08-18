@@ -226,14 +226,14 @@ namespace PcfProvider
 							case plansSubcategory:
 								var plans = GetServices(pathParts.category)
 									.Where(s => s.Name == pathParts.entityName)
-									.Select(s => s.Plans.Select(p => p));
+									.Select(s => s.Plans);
 								RecurseForName(plans, path, recurse);
 								break;
 
 							case routesSubcategory:
 								var appRoutes = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
-									.Select(ai => ai.Routes.Select(p => p));
+									.Select(ai => ai.Routes);
 								RecurseForName(appRoutes, path, recurse);
 								break;
 
@@ -245,7 +245,7 @@ namespace PcfProvider
 								break;
 
 							case spacesSubcategory:
-								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
+								var org = GetOrganizations(pathParts.category).Find(oi => oi.Name == pathParts.entityName);
 								var orgId = org?.InstanceId;
 								var spaces = GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId);
 								RecurseForName(spaces, path, recurse);
@@ -308,45 +308,51 @@ namespace PcfProvider
 						switch (pathParts.subCategory)
 						{
 							case domainsSubcategory:
-								WriteAllItemNames(GetDomains(pathParts.entityName), path);
+								WriteAllItems(GetDomains(pathParts.entityName), path);
 								break;
 
 							case managersSubcategory:
-								WriteAllItemNames(GetManagers(pathParts.entityName), path);
+								WriteAllItems(GetManagers(pathParts.entityName), path);
 								break;
 
 							case plansSubcategory:
 								var plans = GetServices(pathParts.category)
 									.Where(s => s.Name == pathParts.entityName)
-									.Select(s => s.Plans.Select(p => p))
-									.ToList();
-								plans.ForEach(ps => WriteAllItemNames(ps, path));
+									.Select(s => s.Plans);
+								foreach (var plan in plans)
+								{
+									WriteAllItems(plan, path);
+								}
 								break;
 
 							case routesSubcategory:
 								var appRoutes = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
-									.Select(ai => ai.Routes.Select(p => p))
-									.ToList();
-								appRoutes.ForEach(ar => WriteAllItemNames(ar, path));
+									.Select(ai => ai.Routes);
+								foreach (var appRoute in appRoutes)
+								{
+									WriteAllItems(appRoute, path);
+								}
 								break;
 
 							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
-									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
-									.ToList();
-								services.ForEach(s => WriteAllItemNames(s, path));
+									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance));
+								foreach (var service in services)
+								{
+									WriteAllItems(service, path);
+								}
 								break;
 
 							case spacesSubcategory:
 								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
 								var orgId = org?.InstanceId;
-								WriteAllItemNames(GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId), path);
+								WriteAllItems(GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId), path);
 								break;
 
 							case usersSubcategory:
-								WriteAllItemNames(GetUsers(pathParts.entityName), path);
+								WriteAllItems(GetUsers(pathParts.entityName), path);
 								break;
 						}
 					}
@@ -392,50 +398,46 @@ namespace PcfProvider
 				case PathType.PcfSubEntity:
 					if (subCategoryNames.ContainsKey(pathParts.category) && subCategoryNames[pathParts.category].Contains(pathParts.subCategory))
 					{
+						var subEntity = pathParts.subEntity;
 						switch (pathParts.subCategory)
 						{
 							case domainsSubcategory:
-								GetDomains(pathParts.entityName).FindAll(di => di.Name == pathParts.subEntity).ForEach(di => WriteItemObject(di, path, false));
+								WriteAllItems(GetSubentityMatches(subEntity, GetDomains(pathParts.entityName)), path, false, true);
 								break;
 
 							case managersSubcategory:
-								GetManagers(pathParts.entityName).FindAll(mi => mi.Name == pathParts.subEntity).ForEach(mi => WriteItemObject(mi, path, false));
+								WriteAllItems(GetSubentityMatches(subEntity, GetManagers(pathParts.entityName)), path, false, true);
 								break;
 
 							case plansSubcategory:
 								var plans = GetServices(pathParts.category)
 									.Where(s => s.Name == pathParts.entityName)
-									.Select(s => s.Plans.Select(p => p).ToList())
-									.ToList();
-								plans.ForEach(ps => ps.FindAll(s => s.Name == pathParts.subEntity).ForEach(p => WriteItemObject(p, path, false)));
+									.Select(s => s.Plans);
+								WriteAllItems(GetSubentityMatches(subEntity, plans), path, false, true);
 								break;
 
 							case routesSubcategory:
 								var appRoutes = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
-									.Select(ai => ai.Routes.Select(ri => ri).ToList())
-									.ToList();
-								appRoutes.ForEach(ar => ar.FindAll(ri => ri.Name == pathParts.subEntity).ForEach(ri => WriteItemObject(ri, path, false)));
+									.Select(ai => ai.Routes);
+								WriteAllItems(GetSubentityMatches(subEntity, appRoutes), path, false, true);
 								break;
 
 							case serviceBindingsSubcategory:
 								var services = GetApps(pathParts.category)
 									.Where(ai => ai.Name == pathParts.entityName)
-									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance))
-									.ToList();
-								services.ForEach(s => s.ToList().FindAll(si => si.Name == pathParts.subEntity).ForEach(si => WriteItemObject(si, path, false)));
+									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance));
+								WriteAllItems(GetSubentityMatches(subEntity, services), path, false, true);
 								break;
 
 							case spacesSubcategory:
-								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
+								var org = GetOrganizations(pathParts.category).Find(oi => oi.Name == pathParts.entityName);
 								var orgId = org?.InstanceId;
-								GetSpaces(spacesCategory)
-									.FindAll(si => si.OrganizationGuid == orgId)
-									.ForEach(si => WriteItemObject(si, path, false));
+								WriteAllItems(GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId), path, false, true);
 								break;
 
 							case usersSubcategory:
-								GetUsers(pathParts.entityName).FindAll(ui => ui.Name == pathParts.subEntity).ForEach(ui => WriteItemObject(ui, path, false));
+								WriteAllItems(GetSubentityMatches(subEntity, GetUsers(pathParts.entityName)), path, false, true);
 								break;
 						}
 					}
@@ -817,6 +819,16 @@ namespace PcfProvider
 			return (containers.ContainerNames, level, count, category, containerName, entityName, subCategory, subEntity);
 		}
 
+		private IEnumerable<InfoBase.PcfInfo> GetSubentityMatches(string subentity, IEnumerable<IEnumerable<InfoBase.PcfInfo>> entities)
+		{
+			return entities.SelectMany(ps => ps).ToList().FindAll(s => s.Name == subentity);
+		}
+
+		private IEnumerable<InfoBase.PcfInfo> GetSubentityMatches(string subentity, IEnumerable<InfoBase.PcfInfo> entities)
+		{
+			return entities.ToList().FindAll(s => s.Name == subentity);
+		}
+
 		private T LogReturn<T>(Func<T> function, [CallerMemberName]string callerName = "")
 		{
 			T returnValue = function();
@@ -868,11 +880,18 @@ namespace PcfProvider
 
 		private string RemoveDriveFromPath(string path) => path.Replace($"{currentDriveInfo.Root}:", string.Empty);
 
-		private void WriteAllItemNames(IEnumerable<InfoBase.PcfInfo> items, string path, bool isContainer = false)
+		private void WriteAllItems(IEnumerable<InfoBase.PcfInfo> items, string path, bool isContainer = false, bool isFullItem = false)
 		{
 			foreach (var item in items)
 			{
-				WriteItemObject(item.Name, path, isContainer);
+				if (isFullItem)
+				{
+					WriteItemObject(item, path, isContainer);
+				}
+				else
+				{
+					WriteItemObject(item.Name, path, isContainer);
+				}
 			}
 		}
 
@@ -886,17 +905,6 @@ namespace PcfProvider
 		private void WriteErrorRecord(Exception exception, string message, ErrorCategory category, object target)
 		{
 			WriteError(new ErrorRecord(exception, message, category, target));
-		}
-
-		public class CategoryInfo
-		{
-			public Func<IEnumerable<InfoBase.PcfInfo>> Function { get; set; }
-
-			public Type InfoType { get; set; }
-
-			public bool IsContainer { get; set; }
-
-			public Type RootType { get; set; }
 		}
 	}
 }
