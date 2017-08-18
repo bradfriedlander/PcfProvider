@@ -14,6 +14,7 @@ using PcfRouteInfo = PcfProvider.Routes.PcfRouteInfo;
 using PcfRouteMapping = PcfProvider.RouteMappings.PcfRouteMapping;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfSpaceInfo = PcfProvider.Spaces.PcfSpaceInfo;
+using PcfStackInfo = PcfProvider.Stacks.PcfStackInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
 namespace PcfProvider
@@ -40,6 +41,7 @@ namespace PcfProvider
 		}
 
 		private const string appsCategory = "apps";
+		private const string appSpaceSubcategory = "space";
 		private const string domainsSubcategory = "domains";
 		private const string managersSubcategory = "managers";
 		private const string orgsCategory = "organizations";
@@ -50,7 +52,9 @@ namespace PcfProvider
 		private const string serviceBindingsSubcategory = "serviceBindings";
 		private const string servicesCategory = "services";
 		private const string spacesCategory = "spaces";
-		private const string spacesSubcategory = "orgainizationSpaces";
+		private const string spacesSubcategory = "organizationSpaces";
+		private const string stacksCategory = "stacks";
+		private const string stackSubcategory = "stack";
 		private const string usersSubcategory = "users";
 
 		private static readonly Dictionary<string, CategoryInfo> categoriesInfo = new Dictionary<string, CategoryInfo>()
@@ -96,6 +100,13 @@ namespace PcfProvider
 				RootType = typeof(InfoBase.RootObject<PcfSpaceInfo>),
 				Function = () => GetSpaces(),
 				IsContainer = false
+			},
+			[stacksCategory] = new CategoryInfo()
+			{
+				InfoType = typeof(PcfStackInfo),
+				RootType = typeof(InfoBase.RootObject<PcfStackInfo>),
+				Function = () => GetStacks(),
+				IsContainer = false
 			}
 		};
 
@@ -106,12 +117,13 @@ namespace PcfProvider
 			routesCategory,
 			routeMappingsCategory,
 			servicesCategory,
-			spacesCategory
+			spacesCategory,
+			stacksCategory
 		};
 
 		private static readonly Dictionary<string, string[]> subCategoryNames = new Dictionary<string, string[]>
 		{
-			[appsCategory] = new string[] { routesSubcategory, serviceBindingsSubcategory },
+			[appsCategory] = new string[] { routesSubcategory, serviceBindingsSubcategory, appSpaceSubcategory, stackSubcategory },
 			[orgsCategory] = new string[] { domainsSubcategory, managersSubcategory, spacesSubcategory, usersSubcategory },
 			[servicesCategory] = new string[] { plansSubcategory }
 		};
@@ -215,6 +227,12 @@ namespace PcfProvider
 					{
 						switch (pathParts.subCategory)
 						{
+							case appSpaceSubcategory:
+								var appForSpace = GetApps().Find(ai => ai.Name == pathParts.entityName);
+								var spaceid = appForSpace?.SpaceGuid;
+								RecurseForName(GetSpaces().FindAll(si => si.InstanceId == spaceid), path, recurse);
+								break;
+
 							case domainsSubcategory:
 								RecurseForName(GetDomains(pathParts.entityName), path, recurse);
 								break;
@@ -247,8 +265,13 @@ namespace PcfProvider
 							case spacesSubcategory:
 								var org = GetOrganizations(pathParts.category).Find(oi => oi.Name == pathParts.entityName);
 								var orgId = org?.InstanceId;
-								var spaces = GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId);
-								RecurseForName(spaces, path, recurse);
+								RecurseForName(GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId), path, recurse);
+								break;
+
+							case stackSubcategory:
+								var app = GetApps(pathParts.category).Find(ai => ai.Name == pathParts.entityName);
+								var stackId = app?.StackGuid;
+								RecurseForName(GetStacks().FindAll(s => s.InstanceId == stackId), path, recurse);
 								break;
 
 							case usersSubcategory:
@@ -307,6 +330,12 @@ namespace PcfProvider
 					{
 						switch (pathParts.subCategory)
 						{
+							case appSpaceSubcategory:
+								var appForSpace = GetApps().Find(ai => ai.Name == pathParts.entityName);
+								var spaceid = appForSpace?.SpaceGuid;
+								WriteAllItems(GetSpaces().FindAll(si => si.InstanceId == spaceid), path);
+								break;
+
 							case domainsSubcategory:
 								WriteAllItems(GetDomains(pathParts.entityName), path);
 								break;
@@ -348,7 +377,13 @@ namespace PcfProvider
 							case spacesSubcategory:
 								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
 								var orgId = org?.InstanceId;
-								WriteAllItems(GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId), path);
+								WriteAllItems(GetSpaces().FindAll(si => si.OrganizationGuid == orgId), path);
+								break;
+
+							case stackSubcategory:
+								var appForStack = GetApps(pathParts.category).Find(ai => ai.Name == pathParts.entityName);
+								var stackId = appForStack?.StackGuid;
+								WriteAllItems(GetStacks().FindAll(s => s.InstanceId == stackId), path);
 								break;
 
 							case usersSubcategory:
@@ -401,6 +436,12 @@ namespace PcfProvider
 						var subEntity = pathParts.subEntity;
 						switch (pathParts.subCategory)
 						{
+							case appSpaceSubcategory:
+								var appForSpace = GetApps().Find(ai => ai.Name == pathParts.entityName);
+								var spaceid = appForSpace?.SpaceGuid;
+								WriteAllItems(GetSubentityMatches(subEntity, GetSpaces().FindAll(si => si.InstanceId == spaceid)), path, false, true);
+								break;
+
 							case domainsSubcategory:
 								WriteAllItems(GetSubentityMatches(subEntity, GetDomains(pathParts.entityName)), path, false, true);
 								break;
@@ -434,6 +475,12 @@ namespace PcfProvider
 								var org = GetOrganizations(pathParts.category).Find(oi => oi.Name == pathParts.entityName);
 								var orgId = org?.InstanceId;
 								WriteAllItems(GetSpaces(spacesCategory).FindAll(si => si.OrganizationGuid == orgId), path, false, true);
+								break;
+
+							case stackSubcategory:
+								var app = GetApps(pathParts.category).Find(ai => ai.Name == pathParts.entityName);
+								var stackId = app?.StackGuid;
+								WriteAllItems(GetStacks().FindAll(s => s.InstanceId == stackId), path, true);
 								break;
 
 							case usersSubcategory:
@@ -548,6 +595,11 @@ namespace PcfProvider
 					{
 						switch (pathParts.subCategory)
 						{
+							case appSpaceSubcategory:
+								var app = GetApps().Find(ai => ai.Name == pathParts.entityName);
+								var spaceid = app?.SpaceGuid;
+								return LogReturn(() => GetSpaces().Any(s => s.InstanceId == spaceid));
+
 							case domainsSubcategory:
 								return LogReturn(() => GetDomains(pathParts.entityName).Any(di => di.Name == pathParts.subEntity));
 
@@ -555,27 +607,32 @@ namespace PcfProvider
 								return LogReturn(() => GetManagers(pathParts.entityName).Any(mi => mi.Name == pathParts.subEntity));
 
 							case plansSubcategory:
-								var plans = GetServices(pathParts.category)
+								var plans = GetServices()
 									.Where(si => si.Name == pathParts.entityName)
 									.Select(si => si.Plans);
 								return LogReturn(() => plans.Any());
 
 							case routesSubcategory:
-								var appRoutes = GetApps(pathParts.category)
+								var appRoutes = GetApps()
 									.Where(ai => ai.Name == pathParts.entityName)
 									.Select(ai => ai.Routes);
 								return LogReturn(() => appRoutes.Any());
 
 							case serviceBindingsSubcategory:
-								var services = GetApps(pathParts.category)
+								var services = GetApps()
 									.Where(ai => ai.Name == pathParts.entityName)
 									.Select(ai => ai.ServiceBindings.Select(sb => sb.ServiceInstance));
 								return LogReturn(() => services.Any(s => s.Any(si => si.Name == pathParts.subEntity)));
 
 							case spacesSubcategory:
-								var org = GetOrganizations(pathParts.category).FirstOrDefault(oi => oi.Name == pathParts.entityName);
+								var org = GetOrganizations().Find(oi => oi.Name == pathParts.entityName);
 								var orgId = org?.InstanceId;
-								return LogReturn(() => GetSpaces(spacesCategory).Any(si => si.OrganizationGuid == orgId));
+								return LogReturn(() => GetSpaces().Any(si => si.OrganizationGuid == orgId));
+
+							case stackSubcategory:
+								var appForStack = GetApps().Find(ai => ai.Name == pathParts.entityName);
+								var stackId = appForStack?.StackGuid;
+								return LogReturn(() => GetStacks().Any(s => s.InstanceId == stackId));
 
 							case usersSubcategory:
 								return LogReturn(() => GetUsers(pathParts.entityName).Any(ui => ui.Name == pathParts.subEntity));
@@ -771,6 +828,8 @@ namespace PcfProvider
 		private static List<PcfServiceInfo> GetServices(string container = servicesCategory) => currentDriveInfo.Connection.GetAllServices(container);
 
 		private static List<PcfSpaceInfo> GetSpaces(string container = spacesCategory) => currentDriveInfo.Connection.GetAllSpaces(container);
+
+		private static List<PcfStackInfo> GetStacks(string container = stacksCategory) => currentDriveInfo.Connection.GetAllStacks(container);
 
 		private static List<PcfUserInfo> GetUsers(string organization) => currentDriveInfo.Connection.GetAllUsers(organization);
 

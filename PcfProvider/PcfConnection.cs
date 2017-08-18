@@ -17,6 +17,7 @@ using PcfServiceBinding = PcfProvider.ServiceBindings.PcfServiceBinding;
 using PcfServiceInfo = PcfProvider.Services.PcfServiceInfo;
 using PcfServicePlan = PcfProvider.ServicePlans.PcfServicePlan;
 using PcfSpaceInfo = PcfProvider.Spaces.PcfSpaceInfo;
+using PcfStackInfo = PcfProvider.Stacks.PcfStackInfo;
 using PcfUserInfo = PcfProvider.Users.PcfUserInfo;
 
 namespace PcfProvider
@@ -66,7 +67,7 @@ namespace PcfProvider
 			[typeof(Services.RootObject)] = 600,
 			[typeof(Info.PcfInfo)] = 3600,
 			[typeof(LoginInfo.PcfLoginInfo)] = 3600,
-			[typeof(Spaces.RootObject)]= 3600
+			[typeof(Spaces.RootObject)] = 3600
 		};
 
 		public List<PcfAppInfo> GetAllApps(string container = "apps")
@@ -143,6 +144,13 @@ namespace PcfProvider
 		{
 			var allSpaces = GetFromCache<Spaces.RootObject, PcfSpaceInfo>(
 				() => GetAllInfo<PcfSpaceInfo, Spaces.RootObject>(container));
+			return allSpaces.Resources.Select(r => r.Info).ToList();
+		}
+
+		public List<PcfStackInfo> GetAllStacks(string container)
+		{
+			var allSpaces = GetFromCache<Stacks.RootObject, PcfStackInfo>(
+				() => GetAllInfo<PcfStackInfo, Stacks.RootObject>(container));
 			return allSpaces.Resources.Select(r => r.Info).ToList();
 		}
 

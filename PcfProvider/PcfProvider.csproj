@@ -101,6 +101,8 @@
     <Compile Include="Services\RootObject.cs" />
     <Compile Include="Spaces\PcfSpaceInfo.cs" />
     <Compile Include="Spaces\RootObject.cs" />
+    <Compile Include="Stacks\PcfStackInfo.cs" />
+    <Compile Include="Stacks\RootObject.cs" />
     <Compile Include="TraceTest.cs" />
     <Compile Include="Users\PcfUserInfo.cs" />
     <Compile Include="Users\RootObject.cs" />
