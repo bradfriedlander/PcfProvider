@@ -142,43 +142,43 @@ namespace PcfProvider
 
 		public void ClearContent(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(ClearContent)}({path})");
+			WriteTrace($"Entering {nameof(ClearContent)}({path})");
 			throw new NotImplementedException();
 		}
 
 		public object ClearContentDynamicParameters(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(ClearContentDynamicParameters)}({path})");
+			WriteTrace($"Entering {nameof(ClearContentDynamicParameters)}({path})");
 			throw new NotImplementedException();
 		}
 
 		public IContentReader GetContentReader(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(GetContentReader)}({path})");
+			WriteTrace($"Entering {nameof(GetContentReader)}({path})");
 			throw new NotImplementedException();
 		}
 
 		public object GetContentReaderDynamicParameters(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(GetContentReaderDynamicParameters)}({path})");
+			WriteTrace($"Entering {nameof(GetContentReaderDynamicParameters)}({path})");
 			throw new NotImplementedException();
 		}
 
 		public IContentWriter GetContentWriter(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(GetContentWriter)}({path})");
+			WriteTrace($"Entering {nameof(GetContentWriter)}({path})");
 			throw new NotImplementedException();
 		}
 
 		public object GetContentWriterDynamicParameters(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(GetContentWriterDynamicParameters)}({path})");
+			WriteTrace($"Entering {nameof(GetContentWriterDynamicParameters)}({path})");
 			throw new NotImplementedException();
 		}
 
 		protected override string[] ExpandPath(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(ExpandPath)}({path})");
+			WriteTrace($"Entering {nameof(ExpandPath)}({path})");
 			return LogReturn(() => FindMatchingNames(path));
 		}
 
@@ -189,7 +189,7 @@ namespace PcfProvider
 		/// <param name="recurse">If set to <c>true</c>, then recurse through all child containers.</param>
 		protected override void GetChildItems(string path, bool recurse)
 		{
-			_trace.WriteLine($"Entering {nameof(GetChildItems)}({path}, {recurse.ToString()})");
+			WriteTrace($"Entering {nameof(GetChildItems)}({path}, {recurse.ToString()})");
 			var pathParts = GetPathParts(path);
 			switch (pathParts.level)
 			{
@@ -288,7 +288,7 @@ namespace PcfProvider
 
 		protected override string GetChildName(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(GetChildName)}({path})");
+			WriteTrace($"Entering {nameof(GetChildName)}({path})");
 			var containers = GetContainerNames(path);
 			return LogReturn(() => PathType.Drive == containers.Level ? "" : containers.ContainerNames.Last());
 		}
@@ -300,7 +300,7 @@ namespace PcfProvider
 		/// <param name="returnContainers">This controls which containers to return.</param>
 		protected override void GetChildNames(string path, ReturnContainers returnContainers)
 		{
-			_trace.WriteLine($"Entering {nameof(GetChildNames)}({path}, returnContainers)");
+			WriteTrace($"Entering {nameof(GetChildNames)}({path}, returnContainers)");
 			var pathParts = GetPathParts(path);
 			switch (pathParts.level)
 			{
@@ -400,7 +400,7 @@ namespace PcfProvider
 
 		protected override void GetItem(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(GetItem)}({path})");
+			WriteTrace($"Entering {nameof(GetItem)}({path})");
 			var pathParts = GetPathParts(path);
 			switch (pathParts.level)
 			{
@@ -494,7 +494,7 @@ namespace PcfProvider
 
 		protected override bool HasChildItems(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(HasChildItems)}({path})");
+			WriteTrace($"Entering {nameof(HasChildItems)}({path})");
 			if (currentDriveInfo.PathIsDrive(path))
 			{
 				return LogReturn(() => true);
@@ -539,7 +539,7 @@ namespace PcfProvider
 
 		protected override bool IsItemContainer(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(IsItemContainer)}({path})");
+			WriteTrace($"Entering {nameof(IsItemContainer)}({path})");
 			var containers = GetContainerNames(path);
 			switch (containers.Level)
 			{
@@ -562,7 +562,7 @@ namespace PcfProvider
 
 		protected override bool IsValidPath(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(IsValidPath)}({path})");
+			WriteTrace($"Entering {nameof(IsValidPath)}({path})");
 			return true;
 		}
 
@@ -574,7 +574,7 @@ namespace PcfProvider
 		/// <returns>A string that represents the parent and child segments of the path joined by a path separator.</returns>
 		protected override bool ItemExists(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(ItemExists)}({path})");
+			WriteTrace($"Entering {nameof(ItemExists)}({path})");
 			var pathParts = GetPathParts(path);
 			switch (pathParts.level)
 			{
@@ -654,13 +654,13 @@ namespace PcfProvider
 
 		protected override object ItemExistsDynamicParameters(string path)
 		{
-			_trace.WriteLine($"Entering {nameof(ItemExistsDynamicParameters)}({path})");
+			WriteTrace($"Entering {nameof(ItemExistsDynamicParameters)}({path})");
 			return null;
 		}
 
 		protected override PSDriveInfo NewDrive(PSDriveInfo drive)
 		{
-			_trace.WriteLine($"Entering {nameof(NewDrive)}");
+			WriteTrace($"Entering {nameof(NewDrive)}");
 			if (drive == null)
 			{
 				WriteErrorRecord(new ArgumentNullException(nameof(drive)), "NullDrive", ErrorCategory.InvalidArgument, null);
@@ -738,7 +738,7 @@ namespace PcfProvider
 
 		protected override string NormalizeRelativePath(string path, string basePath)
 		{
-			_trace.WriteLine($"Entering {nameof(NormalizeRelativePath)}({path}, {basePath})");
+			WriteTrace($"Entering {nameof(NormalizeRelativePath)}({path}, {basePath})");
 			string normalPath = NormalizePath(path);
 			normalPath = RemoveDriveFromPath(normalPath);
 			string normalBasePath = NormalizePath(basePath);
@@ -757,7 +757,7 @@ namespace PcfProvider
 
 		protected override PSDriveInfo RemoveDrive(PSDriveInfo drive)
 		{
-			_trace.WriteLine($"Entering {nameof(RemoveDrive)}");
+			WriteTrace($"Entering {nameof(RemoveDrive)}");
 			if (drive == null)
 			{
 				WriteErrorRecord(new ArgumentNullException(nameof(drive)), "NullDrive", ErrorCategory.InvalidArgument, drive);
@@ -964,6 +964,19 @@ namespace PcfProvider
 		private void WriteErrorRecord(Exception exception, string message, ErrorCategory category, object target)
 		{
 			WriteError(new ErrorRecord(exception, message, category, target));
+		}
+
+		private void WriteTrace(string message, bool isBlankBefore = false)
+		{
+			_trace.WriteLine(message, isBlankBefore: isBlankBefore);
+			try
+			{
+				WriteDebug(message);
+			}
+			catch (Exception genEx)
+			{
+				_trace.WriteLine($"{genEx.Message}\r\nStack Trace: {genEx.StackTrace}");
+			}
 		}
 	}
 }

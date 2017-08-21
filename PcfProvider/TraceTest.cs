@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System;
 using System.Runtime.CompilerServices;
 
 namespace PcfProvider
@@ -27,7 +26,8 @@ namespace PcfProvider
 			if (Activated)
 			{
 				var blankBefore = isBlankBefore ? "\r\n" : string.Empty;
-				Trace.WriteLine($"{blankBefore}[{DateTime.Now.ToString("HH:mm:ss.fff")}] {application ?? Application}({area ?? Area}): {message}");
+				var formattedMessage = $"{blankBefore}[{DateTime.Now.ToString("HH:mm:ss.fff")}] {application ?? Application}({area ?? Area}): {message}";
+				Trace.WriteLine(formattedMessage);
 			}
 		}
 
