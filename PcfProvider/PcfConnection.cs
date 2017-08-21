@@ -182,7 +182,7 @@ namespace PcfProvider
 			var info = JsonConvert.DeserializeObject<TRoot>(rawInfo);
 			info.Resources.ForEach(r =>
 			{
-				r.SetInstanceId();
+				r.SetInstanceDataFromMetadata();
 				if (string.IsNullOrEmpty(r.Info.Name))
 				{
 					r.Info.Name = r.Info.InstanceId.ToString();
